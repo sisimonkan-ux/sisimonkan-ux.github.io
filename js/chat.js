@@ -422,11 +422,17 @@ function updatePinnedMessageBanner() {
     if (pinnedData) {
         if (pinnedData.type === 'both' || pinnedData.pinnedBy === myId) {
             const msg = messages.find(m => m.id === pinnedData.msgId);
+            
+            // Show banner regardless of whether message has loaded yet
             if (msg) {
                 document.getElementById('pinned-msg-text').innerText = msg.text || '📷 تصویر';
-                banner.classList.remove('hidden');
-                return;
+            } else {
+                // If message hasn't loaded yet, show placeholder
+                document.getElementById('pinned-msg-text').innerText = '📌 پیام سنجاق شده...';
             }
+            
+            banner.classList.remove('hidden');
+            return;
         }
     }
     banner.classList.add('hidden');
