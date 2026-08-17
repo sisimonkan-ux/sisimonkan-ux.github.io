@@ -48,6 +48,7 @@ function togglePinChat(chatId, event) {
     }
 
     localStorage.setItem('app_pinned_chats_v6', JSON.stringify(userPinnedChats));
+    db.ref('app_pinned_chats_v6').set(userPinnedChats);
     renderChatList();
     if (currentChat && currentChat.id.toLowerCase() === chatId.toLowerCase()) {
         openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified);
