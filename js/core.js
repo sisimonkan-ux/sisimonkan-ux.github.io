@@ -76,6 +76,13 @@ db.ref('app_unread_v6').on('value', (snapshot) => {
     renderChatList();
 });
 
+db.ref('app_pinned_chats_v6').on('value', (snapshot) => {
+    const data = snapshot.val();
+    userPinnedChats = data || {};
+    localStorage.setItem('app_pinned_chats_v6', JSON.stringify(userPinnedChats));
+    if (currentUser) renderChatList();
+});
+
 db.ref('app_chat_locks_v6').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
