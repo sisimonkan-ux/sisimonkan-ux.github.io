@@ -69,6 +69,7 @@ function login() {
 
     if (foundUser) {
         currentUser = foundUser;
+        persistSession();
         initApp();
     } else {
         alert('نام کاربری یا رمز عبور نادرست است');
@@ -81,9 +82,38 @@ function initApp() {
     renderChatList();
 }
 
+/* ---------- ماندگاری نشست (Session) بین رفرش‌های صفحه ---------- */
+function persistSession() {
+    if (currentUser) {
+        localStorage.setItem('app_current_session_v6', JSON.stringify(currentUser));
+    }
+}
+
+function restoreSession() {
+    const saved = localStorage.getItem('app_current_session_v6');
+    if (!saved) return;
+    try {
+        const savedUser = JSON.parse(saved);
+        if (!savedUser || !savedUser.userId) return;
+
+        if (savedUser.isAdmin) {
+            // آواتار مدیر را از آخرین نسخه‌ی همگام‌شده می‌خوانیم
+            currentUser = { ...savedUser, avatar: (users['admin'] ? users['admin'].avatar : savedUser.avatar) };
+        } else {
+            const freshUser = users[savedUser.userId.toLowerCase()];
+            // اگر کاربر هنوز در دیتابیس وجود دارد از نسخه‌ی تازه‌اش استفاده کن، وگرنه از نسخه‌ی ذخیره‌شده
+            currentUser = freshUser || savedUser;
+        }
+        initApp();
+    } catch (e) {
+        localStorage.removeItem('app_current_session_v6');
+    }
+}
+
 function logout() {
     if (confirm("آیا می‌خواهید از حساب خود خارج شوید؟")) {
         currentUser = null;
+        localStorage.removeItem('app_current_session_v6');
         hideMainSections();
         document.getElementById('auth-screen').classList.remove('hidden');
         switchToLogin();
@@ -107,6 +137,7 @@ function uploadUserAvatar(event) {
             saveUsers();
         }
 
+        persistSession();
         renderSettingsAvatar();
         renderChatList();
         alert('تصویر پروفایل شما با موفقیت بروزرسانی شد!');
@@ -172,6 +203,7 @@ function saveSettings() {
         currentUser.name = name;
         currentUser.family = family;
         currentUser.password = newPassword;
+        persistSession();
         alert('اطلاعات مدیریت با موفقیت بروز شد!');
         openSettings();
         return;
@@ -206,6 +238,7 @@ function saveSettings() {
 
     saveUsers();
     saveMessages();
+    persistSession();
 
     alert('اطلاعات شما با موفقیت بروزرسانی شد!');
     openSettings();
@@ -239,3 +272,7 @@ window.logout = logout;
 window.searchUser = searchUser;
 window.uploadUserAvatar = uploadUserAvatar;
 window.saveSettings = saveSettings;
+
+/* هنگام لود اولیه‌ی صفحه، اگر کاربر قبلاً وارد شده، به‌جای صفحه‌ی ورود مستقیم به چت‌ها می‌رویم.
+   کمی تأخیر می‌دهیم تا لیستنرهای دیتابیس در core.js اولین دیتای users را بگیرند. */
+setTimeout(restoreSession, 400);
