@@ -168,3 +168,41 @@ function switchMainSection(tab) {
 }
 
 window.switchMainSection = switchMainSection;
+
+/* ---------- تطبیق ارتفاع صفحه با ظاهر شدن کیبورد موبایل ----------
+   چون html/body با position:fixed تنظیم شده، با باز شدن کیبورد در
+   موبایل، ارتفاع innerHeight تغییر نمی‌کند و کادر نوشتن پیام زیر
+   کیبورد پنهان می‌ماند. با گوش دادن به visualViewport، ارتفاع واقعی
+   صفحه‌ی قابل مشاهده را به .screen اعمال می‌کنیم تا کادر ورودی همیشه
+   بالای کیبورد باقی بماند. */
+function setupViewportKeyboardFix() {
+    function updateHeight() {
+        const vv = window.visualViewport;
+        const h = vv ? vv.height : window.innerHeight;
+        document.querySelectorAll('.screen').forEach(el => {
+            el.style.height = h + 'px';
+        });
+        if (vv) window.scrollTo(0, 0);
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', updateHeight);
+        window.visualViewport.addEventListener('scroll', updateHeight);
+    }
+    window.addEventListener('resize', updateHeight);
+    updateHeight();
+
+    // وقتی کاربر روی کادر نوشتن پیام می‌زند، مطمئن می‌شویم آن قسمت
+    // در دید باقی می‌ماند و کیبورد آن را نمی‌پوشاند.
+    const msgInput = document.getElementById('message-input');
+    if (msgInput) {
+        msgInput.addEventListener('focus', () => {
+            setTimeout(updateHeight, 300);
+            setTimeout(() => {
+                msgInput.scrollIntoView({ block: 'end', behavior: 'smooth' });
+            }, 350);
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', setupViewportKeyboardFix);
