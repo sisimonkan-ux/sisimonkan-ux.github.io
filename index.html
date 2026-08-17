@@ -210,15 +210,6 @@
             </div>
         </div>
 
-        <!-- Pinned Message Banner -->
-        <div id="pinned-msg-banner" class="pinned-msg-banner hidden">
-            <div class="pinned-msg-content" id="pinned-msg-content" onclick="scrollToPinnedMessage()">
-                <span class="pinned-msg-title">📌 پیام سنجاق‌شده</span>
-                <span class="pinned-msg-text" id="pinned-msg-text">متن پیام...</span>
-            </div>
-            <i class="fa fa-times pinned-msg-close" title="برداشتن سنجاق" onclick="unpinMessage(event)"></i>
-        </div>
-
         <div class="messages-container" id="messages-container"></div>
 
         <div class="chat-bottom-wrapper">
@@ -270,15 +261,6 @@
             <div id="message-reactions-list" class="reactions-info-box"></div>
             <div id="message-menu-actions"></div>
             <button class="modal-btn btn-cancel" onclick="closeMessageMenu()">بستن</button>
-        </div>
-    </div>
-
-    <div id="pin-msg-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3 style="margin-bottom: 15px;">سنجاق پیام 📌</h3>
-            <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">نحوه سنجاق کردن پیام را انتخاب کنید:</p>
-            <div id="pin-msg-options"></div>
-            <button class="modal-btn btn-cancel" onclick="closePinModal()">انصراف</button>
         </div>
     </div>
 
