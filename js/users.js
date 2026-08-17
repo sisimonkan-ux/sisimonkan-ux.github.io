@@ -35,7 +35,7 @@ function completeRegister() {
         avatar: null
     };
 
-    saveUsers();
+    saveUsers(userId);
 
     const regBtn = document.querySelector('#step-2 button[onclick="completeRegister()"]');
     if (regBtn) { regBtn.disabled = true; regBtn.innerText = 'در حال بررسی اتصال...'; }
@@ -55,6 +55,7 @@ function completeRegister() {
         } else {
             delete users[userId];
             localStorage.setItem('app_users_v6', JSON.stringify(users));
+            db.ref('app_users_v6/' + userId).remove();
             alert('⚠️ ثبت‌نام شما ذخیره نشد!\nبه‌نظر می‌رسد فیلترشکن شما خاموش است و اتصال به سرور برقرار نشد.\nلطفاً فیلترشکن خود را روشن کنید و دوباره ثبت‌نام کنید.');
         }
     });
@@ -174,12 +175,12 @@ function uploadUserAvatar(event) {
         if (!currentUser.isAdmin) {
             if (users[currentUser.userId.toLowerCase()]) {
                 users[currentUser.userId.toLowerCase()].avatar = base64Image;
-                saveUsers();
+                saveUsers(currentUser.userId.toLowerCase());
             }
         } else {
             if (!users['admin']) users['admin'] = currentUser;
             users['admin'].avatar = base64Image;
-            saveUsers();
+            saveUsers('admin');
         }
 
         persistSession();
@@ -281,7 +282,7 @@ function saveSettings() {
         if (m.chatId.toLowerCase() === `saved_${oldUserId}`) m.chatId = `saved_${newUserId}`;
     });
 
-    saveUsers();
+    saveUsers(newUserId, oldUserId);
     saveMessages();
     persistSession();
 

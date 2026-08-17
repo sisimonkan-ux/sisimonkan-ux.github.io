@@ -127,9 +127,19 @@ function saveMessages() {
     db.ref('app_messages_v6').set(messages);
 }
 
-function saveUsers() {
+/* توجه: به‌جای بازنویسی کل نود app_users_v6 (که در صورت ناقص/قدیمی بودن
+   نسخه‌ی محلی، باعث پاک شدن اکانت‌های دیگران می‌شد)، فقط رکورد همان
+   کاربری که تغییر کرده را در دیتابیس می‌نویسیم. اگر رنیم/تغییر آیدی
+   رخ داده باشد (deletedUserId)، آیدی قدیمی را جداگانه حذف می‌کنیم. */
+function saveUsers(changedUserId, deletedUserId) {
     localStorage.setItem('app_users_v6', JSON.stringify(users));
-    db.ref('app_users_v6').set(users);
+
+    if (changedUserId && users[changedUserId]) {
+        db.ref('app_users_v6/' + changedUserId).set(users[changedUserId]);
+    }
+    if (deletedUserId) {
+        db.ref('app_users_v6/' + deletedUserId).remove();
+    }
 }
 
 function setActiveNav(tab) {
