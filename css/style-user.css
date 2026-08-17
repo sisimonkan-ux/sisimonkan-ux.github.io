@@ -67,7 +67,6 @@ html, body {
 .chat-list { flex: 1; overflow-y: auto; }
 .chat-item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #17212b; position: relative; }
 .chat-item:hover { background: #202b36; }
-.chat-item.is-pinned-chat { background: #1a2430; }
 
 /* Avatar Styles */
 .avatar-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; margin-left: 12px; flex-shrink: 0; }
@@ -85,26 +84,7 @@ html, body {
 .unread-separator span { background: #182533; padding: 2px 10px; font-size: 11px; color: #e53935; border-radius: 10px; border: 1px solid #e53935; position: relative; z-index: 1; }
 .reaction-badge { background: #e53935; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; }
 .reply-badge { color: #5288c1; font-size: 13px; }
-.pinned-chat-badge { color: #e5824b; font-size: 14px; margin-left: 5px; }
 .verified-badge { color: #2AABEE; font-size: 13px; margin-right: 4px; }
-
-/* Pinned Message Banner */
-.pinned-msg-banner {
-    background: #17212b;
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 2px solid #5288c1;
-    font-size: 12px;
-    cursor: pointer;
-    flex-shrink: 0;
-}
-.pinned-msg-content { display: flex; flex-direction: column; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.pinned-msg-title { color: #5288c1; font-weight: bold; font-size: 11px; }
-.pinned-msg-text { color: #ddd; overflow: hidden; text-overflow: ellipsis; }
-.pinned-msg-close { color: #aaa; padding: 5px; cursor: pointer; }
-.pinned-msg-close:hover { color: #e53935; }
 
 /* Chat Area */
 .messages-container {
