@@ -36,10 +36,55 @@ function completeRegister() {
     };
 
     saveUsers();
-    alert('ثبت‌نام با موفقیت انجام شد! حالا وارد شوید.');
-    document.getElementById('login-username').value = tempAuth.username;
-    document.getElementById('login-password').value = tempAuth.password;
-    switchToLogin();
+
+    const regBtn = document.querySelector('#step-2 button[onclick="completeRegister()"]');
+    if (regBtn) { regBtn.disabled = true; regBtn.innerText = 'در حال بررسی اتصال...'; }
+
+    /* بررسی می‌کنیم که آیا واقعاً به سرور دیتابیس وصل شدیم یا نه.
+       اگر فیلترشکن کاربر خاموش باشد، اتصال به فایربیس برقرار نمی‌شود و
+       اکانتی که بالا ساختیم فقط به‌صورت محلی/موقت باقی می‌ماند و هرگز
+       واقعاً روی سرور ذخیره نمی‌شود؛ در این حالت اکانت را حذف و به کاربر اطلاع می‌دهیم. */
+    verifyDatabaseConnection(function(isConnected) {
+        if (regBtn) { regBtn.disabled = false; regBtn.innerText = 'ثبت نام'; }
+
+        if (isConnected) {
+            alert('ثبت‌نام با موفقیت انجام شد! حالا وارد شوید.');
+            document.getElementById('login-username').value = tempAuth.username;
+            document.getElementById('login-password').value = tempAuth.password;
+            switchToLogin();
+        } else {
+            delete users[userId];
+            localStorage.setItem('app_users_v6', JSON.stringify(users));
+            alert('⚠️ ثبت‌نام شما ذخیره نشد!\nبه‌نظر می‌رسد فیلترشکن شما خاموش است و اتصال به سرور برقرار نشد.\nلطفاً فیلترشکن خود را روشن کنید و دوباره ثبت‌نام کنید.');
+        }
+    });
+}
+
+/* بررسی اتصال واقعی به سرور فایربیس با استفاده از مسیر ویژه‌ی .info/connected
+   (که فقط زمانی true می‌شود که کلاینت واقعاً به سرور متصل شده باشد، نه فقط
+   از کش محلی بخواند). اگر ظرف مدت timeoutMs اتصال برقرار نشود، callback با false صدا زده می‌شود. */
+function verifyDatabaseConnection(callback, timeoutMs = 6000) {
+    let settled = false;
+    const connectedRef = db.ref('.info/connected');
+
+    function onConnected(snapshot) {
+        if (settled) return;
+        if (snapshot.val() === true) {
+            settled = true;
+            clearTimeout(timer);
+            connectedRef.off('value', onConnected);
+            callback(true);
+        }
+    }
+
+    const timer = setTimeout(function() {
+        if (settled) return;
+        settled = true;
+        connectedRef.off('value', onConnected);
+        callback(false);
+    }, timeoutMs);
+
+    connectedRef.on('value', onConnected);
 }
 
 function switchToLogin() {

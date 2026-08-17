@@ -1,6 +1,6 @@
 /* =========================================================
    chat.js
-   لیست گفتگوها، ارسال/نمایش پیام، ری‌اکشن، پاسخ، سنجاق،
+   لیست گفتگوها، ارسال/نمایش پیام، ری‌اکشن، پاسخ،
    حذف، فوروارد، بلاک کاربر و مدیریت تصویر گفتگو
    وابسته به: core.js
    ========================================================= */
@@ -35,27 +35,6 @@ function getAllChatsList() {
     return list;
 }
 
-function togglePinChat(chatId, event) {
-    if (event) event.stopPropagation();
-    const myId = currentUser.userId.toLowerCase();
-    if (!userPinnedChats[myId]) userPinnedChats[myId] = [];
-
-    const index = userPinnedChats[myId].indexOf(chatId.toLowerCase());
-    if (index > -1) {
-        userPinnedChats[myId].splice(index, 1);
-    } else {
-        userPinnedChats[myId].push(chatId.toLowerCase());
-    }
-
-    localStorage.setItem('app_pinned_chats_v6', JSON.stringify(userPinnedChats));
-    db.ref('app_pinned_chats_v6').set(userPinnedChats);
-    renderChatList();
-    if (currentChat && currentChat.id.toLowerCase() === chatId.toLowerCase()) {
-        openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified);
-    }
-    closeChatOptionsMenu();
-}
-
 function renderChatList() {
     const container = document.getElementById('chat-list-container');
     if(!container) return;
@@ -63,15 +42,6 @@ function renderChatList() {
 
     let list = getAllChatsList();
     const myId = currentUser ? currentUser.userId.toLowerCase() : '';
-    const myPinnedChats = userPinnedChats[myId] || [];
-
-    list.sort((a, b) => {
-        const isAPinned = myPinnedChats.includes(a.id.toLowerCase());
-        const isBPinned = myPinnedChats.includes(b.id.toLowerCase());
-        if (isAPinned && !isBPinned) return -1;
-        if (!isAPinned && isBPinned) return 1;
-        return 0;
-    });
 
     list.forEach(chat => {
         if (activeTab !== 'all' && chat.type !== activeTab && !(activeTab === 'direct' && chat.type === 'saved')) return;
@@ -81,7 +51,6 @@ function renderChatList() {
 
         const hasReactionAlert = (reactionAlerts[myId] || {})[chat.id.toLowerCase()];
         const hasReplyAlert = (replyAlerts[myId] || {})[chat.id.toLowerCase()];
-        const isPinned = myPinnedChats.includes(chat.id.toLowerCase());
 
         let badgesHtml = '<div class="badge-container">';
         if (hasReactionAlert) badgesHtml += `<span class="reaction-badge">❤️</span>`;
@@ -90,7 +59,6 @@ function renderChatList() {
         badgesHtml += '</div>';
 
         const verifiedHtml = chat.isVerified ? '<i class="fa-solid fa-circle-check verified-badge"></i>' : '';
-        const pinIconHtml = isPinned ? '<span class="pinned-chat-badge">📌</span>' : '';
 
         let avatarHtml = '';
         const customChatMeta = chatMetaData[chat.id.toLowerCase()];
@@ -126,12 +94,12 @@ function renderChatList() {
         }
 
         const div = document.createElement('div');
-        div.className = `chat-item ${isPinned ? 'is-pinned-chat' : ''}`;
+        div.className = 'chat-item';
         div.onclick = () => openChat(chat.id, chat.title, chat.type, chat.isVerified);
         div.innerHTML = `
             ${avatarHtml}
             <div class="details">
-                <h4>${chat.title} ${verifiedHtml} ${pinIconHtml}</h4>
+                <h4>${chat.title} ${verifiedHtml}</h4>
                 <p>${lastMsgText}</p>
             </div>
             ${badgesHtml}
@@ -148,10 +116,6 @@ function openChatOptionsMenu() {
 
     const myId = currentUser.userId.toLowerCase();
     const chatId = currentChat.id.toLowerCase();
-    const myPinnedList = userPinnedChats[myId] || [];
-    const isChatPinned = myPinnedList.includes(chatId);
-
-    list.innerHTML += `<button class="modal-btn btn-secondary" onclick="togglePinChat('${chatId}')"><i class="fa fa-thumbtack"></i> ${isChatPinned ? 'برداشتن سنجاق گفتگو' : 'سنجاق کردن گفتگو'}</button>`;
 
     if (currentChat.type === 'direct' && chatId !== getSavedMessagesChatId()) {
         if (chatId !== 'admin') {
@@ -259,7 +223,6 @@ function openChat(chatId, title, type, isVerified) {
 
     removePendingImage();
     renderMessages(markUnreadIndex);
-    updatePinnedMessageBanner();
 }
 
 function handleChatImageSelect(event) {
@@ -361,10 +324,6 @@ function openMessageMenu(msgId) {
     actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" onclick="triggerAction('reply')"><i class="fa fa-reply"></i> پاسخ به پیام</button>`;
     actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" onclick="triggerAction('forward')"><i class="fa fa-share"></i> فوروارد پیام</button>`;
 
-    if (currentChat.type !== 'channel' || currentUser.isAdmin) {
-        actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" style="background:#e5824b;" onclick="triggerAction('pin')"><i class="fa fa-thumbtack"></i> سنجاق پیام</button>`;
-    }
-
     let canEdit = isMyMsg && !msgObj.image;
     if (currentChat.type === 'channel' && !currentUser.isAdmin) canEdit = false;
     if (canEdit) {
@@ -388,8 +347,6 @@ function triggerAction(action) {
         setReply(selectedMessageObj.id, selectedMessageObj.text || 'تصویر');
     } else if (action === 'forward') {
         openForwardModal(selectedMessageObj.id);
-    } else if (action === 'pin') {
-        openPinModal(selectedMessageObj.id);
     } else if (action === 'edit') {
         startEditMessage(selectedMessageObj.id, selectedMessageObj.text);
     } else if (action === 'delete') {
@@ -401,117 +358,6 @@ function executeQuickReaction(emoji) {
     if (selectedMessageObj) {
         addReaction(selectedMessageObj.id, emoji);
         openMessageMenu(selectedMessageObj.id);
-    }
-}
-
-function getPinnedMsgKey() {
-    if (!currentChat) return null;
-    if (currentChat.type === 'direct') {
-        return `direct_${[currentUser.userId.toLowerCase(), currentChat.id.toLowerCase()].sort().join('_')}`;
-    }
-    return `${currentChat.type}_${currentChat.id.toLowerCase()}`;
-}
-
-function updatePinnedMessageBanner() {
-    const banner = document.getElementById('pinned-msg-banner');
-    const key = getPinnedMsgKey();
-    if (!key) return banner.classList.add('hidden');
-
-    const pinnedData = pinnedMessagesData[key];
-    const myId = currentUser.userId.toLowerCase();
-
-    if (pinnedData) {
-        if (pinnedData.type === 'both' || pinnedData.pinnedBy === myId) {
-            const msg = messages.find(m => m.id === pinnedData.msgId);
-            
-            // Show banner regardless of whether message has loaded yet
-            if (msg) {
-                document.getElementById('pinned-msg-text').innerText = msg.text || '📷 تصویر';
-            } else {
-                // If message hasn't loaded yet, show placeholder
-                document.getElementById('pinned-msg-text').innerText = '📌 پیام سنجاق شده...';
-            }
-            
-            banner.classList.remove('hidden');
-            return;
-        }
-    }
-    banner.classList.add('hidden');
-}
-
-function openPinModal(msgId) {
-    const msgObj = messages.find(m => m.id === msgId);
-    if (!msgObj) return;
-
-    messageToPin = msgObj;
-    const optionsContainer = document.getElementById('pin-msg-options');
-    optionsContainer.innerHTML = '';
-
-    if (currentChat.type === 'channel' || currentChat.type === 'group') {
-        if (currentUser.isAdmin) {
-            optionsContainer.innerHTML = `
-                <button class="modal-btn btn-secondary" onclick="executePinMessage('both')">سنجاق پیام در ${currentChat.type === 'channel' ? 'کانال' : 'گروه'}</button>
-            `;
-        } else {
-            return alert('تنها مدیران می‌توانند پیام را سنجاق کنند!');
-        }
-    } else {
-        optionsContainer.innerHTML = `
-            <button class="modal-btn btn-secondary" onclick="executePinMessage('me')">سنجاق فقط برای خودم 👤</button>
-            <button class="modal-btn btn-danger" onclick="executePinMessage('both')">سنجاق برای هر دو طرف 👥</button>
-        `;
-    }
-
-    document.getElementById('pin-msg-modal').classList.remove('hidden');
-}
-
-function closePinModal() {
-    document.getElementById('pin-msg-modal').classList.add('hidden');
-    messageToPin = null;
-}
-
-function executePinMessage(type) {
-    if (!messageToPin || !currentChat) return;
-
-    const key = getPinnedMsgKey();
-    pinnedMessagesData[key] = {
-        msgId: messageToPin.id,
-        pinnedBy: currentUser.userId.toLowerCase(),
-        type: type
-    };
-
-    localStorage.setItem('app_pinned_messages_v6', JSON.stringify(pinnedMessagesData));
-    db.ref('app_pinned_messages_v6').set(pinnedMessagesData);
-    closePinModal();
-    updatePinnedMessageBanner();
-    renderMessages();
-    alert('پیام با موفقیت سنجاق شد!');
-}
-
-function unpinMessage(event) {
-    if (event) event.stopPropagation();
-    if (!currentChat) return;
-
-    const key = getPinnedMsgKey();
-    if (pinnedMessagesData[key]) {
-        delete pinnedMessagesData[key];
-        localStorage.setItem('app_pinned_messages_v6', JSON.stringify(pinnedMessagesData));
-        db.ref('app_pinned_messages_v6').set(pinnedMessagesData);
-    }
-    updatePinnedMessageBanner();
-    renderMessages();
-}
-
-function scrollToPinnedMessage() {
-    const key = getPinnedMsgKey();
-    const pinnedData = pinnedMessagesData[key];
-    if (pinnedData) {
-        const el = document.getElementById(`msg-${pinnedData.msgId}`);
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.style.boxShadow = '0 0 10px #5288c1';
-            setTimeout(() => el.style.boxShadow = 'none', 2000);
-        }
     }
 }
 
@@ -631,7 +477,6 @@ function sendMessage() {
         }
         cancelReply();
         renderMessages();
-        updatePinnedMessageBanner();
         input.value = '';
         return;
     }
@@ -852,7 +697,6 @@ function executeDelete(type) {
     saveMessages();
     closeDeleteModal();
     renderMessages();
-    updatePinnedMessageBanner();
 }
 
 function openForwardModal(msgId) {
@@ -999,8 +843,6 @@ function copyCurrentChatId() {
 
 window.switchTab = switchTab;
 window.openChatOptionsMenu = openChatOptionsMenu;
-window.scrollToPinnedMessage = scrollToPinnedMessage;
-window.unpinMessage = unpinMessage;
 window.cancelReply = cancelReply;
 window.removePendingImage = removePendingImage;
 window.handleChatImageSelect = handleChatImageSelect;
@@ -1009,7 +851,6 @@ window.sendMessage = sendMessage;
 window.closeChatOptionsMenu = closeChatOptionsMenu;
 window.executeQuickReaction = executeQuickReaction;
 window.closeMessageMenu = closeMessageMenu;
-window.closePinModal = closePinModal;
 window.executeDeleteChat = executeDeleteChat;
 window.closeDeleteChatModal = closeDeleteChatModal;
 window.closeForwardModal = closeForwardModal;
@@ -1017,12 +858,10 @@ window.closeDeleteModal = closeDeleteModal;
 window.closeImageViewer = closeImageViewer;
 window.openChat = openChat;
 window.copyCurrentChatId = copyCurrentChatId;
-window.togglePinChat = togglePinChat;
 window.toggleBlockUser = toggleBlockUser;
 window.openDeleteChatModal = openDeleteChatModal;
 window.viewFullImage = viewFullImage;
 window.triggerAction = triggerAction;
-window.executePinMessage = executePinMessage;
 window.executeDelete = executeDelete;
 window.executeForward = executeForward;
 window.closeChat = closeChat;

@@ -26,7 +26,6 @@ let editingMessageId = null;
 let activeTab = 'all';
 let messageToForward = null;
 let messageToDelete = null;
-let messageToPin = null;
 let selectedMessageObj = null;
 let pendingImageBase64 = null;
 let tempAuth = {};
@@ -37,8 +36,6 @@ let unreadCounts = JSON.parse(localStorage.getItem('app_unread_v6')) || {};
 let blockedUsers = JSON.parse(localStorage.getItem('app_blocked_v6')) || {};
 let reactionAlerts = JSON.parse(localStorage.getItem('app_reaction_alerts_v6')) || {};
 let replyAlerts = JSON.parse(localStorage.getItem('app_reply_alerts_v6')) || {};
-let userPinnedChats = JSON.parse(localStorage.getItem('app_pinned_chats_v6')) || {};
-let pinnedMessagesData = JSON.parse(localStorage.getItem('app_pinned_messages_v6')) || {};
 let chatMetaData = JSON.parse(localStorage.getItem('app_chat_meta_v6')) || {};
 
 let chatLockStatus = JSON.parse(localStorage.getItem('app_chat_locks_v6')) || {
@@ -62,25 +59,11 @@ db.ref('app_users_v6').on('value', (snapshot) => {
     renderChatList();
 });
 
-db.ref('app_pinned_messages_v6').on('value', (snapshot) => {
-    const data = snapshot.val();
-    pinnedMessagesData = data || {};
-    localStorage.setItem('app_pinned_messages_v6', JSON.stringify(pinnedMessagesData));
-    if (currentChat) updatePinnedMessageBanner();
-});
-
 db.ref('app_unread_v6').on('value', (snapshot) => {
     const data = snapshot.val();
     unreadCounts = data || {};
     localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
     renderChatList();
-});
-
-db.ref('app_pinned_chats_v6').on('value', (snapshot) => {
-    const data = snapshot.val();
-    userPinnedChats = data || {};
-    localStorage.setItem('app_pinned_chats_v6', JSON.stringify(userPinnedChats));
-    if (currentUser) renderChatList();
 });
 
 db.ref('app_chat_locks_v6').on('value', (snapshot) => {
