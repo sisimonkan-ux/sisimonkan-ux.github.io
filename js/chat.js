@@ -224,18 +224,62 @@ function openChat(chatId, title, type, isVerified) {
     removePendingImage();
     removePendingVideo();
     removePendingVoice();
+    closeAttachMenu();
     renderMessages(markUnreadIndex);
 }
 
-function handleChatImageSelect(event) {
+/* ---------- منوی دکمه پیوست (عکس/ویدیو + پیام صوتی در یک دکمه) ---------- */
+function toggleAttachMenu(event) {
+    if (event) event.stopPropagation();
+    document.getElementById('attach-menu').classList.toggle('hidden');
+}
+
+function closeAttachMenu() {
+    document.getElementById('attach-menu').classList.add('hidden');
+}
+
+function chooseAttachVoice() {
+    closeAttachMenu();
+    startVoiceRecording();
+}
+
+function chooseAttachGallery() {
+    closeAttachMenu();
+    document.getElementById('chat-media-file-input').click();
+}
+
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('attach-menu');
+    const btn = document.getElementById('btn-attach-main');
+    if (!menu || menu.classList.contains('hidden')) return;
+    if (menu.contains(e.target) || (btn && btn.contains(e.target))) return;
+    menu.classList.add('hidden');
+});
+
+/* ---------- انتخاب فایل از گالری: عکس یا ویدیو ---------- */
+function handleChatMediaSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    compressAndReadImage(file, function(base64Img) {
-        pendingImageBase64 = base64Img;
-        document.getElementById('img-preview-thumb').src = base64Img;
-        document.getElementById('img-preview-bar').classList.remove('hidden');
-    });
+    removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
+
+    if (file.type.startsWith('image/')) {
+        compressAndReadImage(file, function(base64Img) {
+            pendingImageBase64 = base64Img;
+            document.getElementById('img-preview-thumb').src = base64Img;
+            document.getElementById('img-preview-bar').classList.remove('hidden');
+        });
+    } else if (file.type.startsWith('video/')) {
+        readVideoFileAsBase64(file, function(base64Video) {
+            pendingVideoBase64 = base64Video;
+            document.getElementById('video-preview-thumb').src = base64Video;
+            document.getElementById('video-preview-bar').classList.remove('hidden');
+        });
+    } else {
+        alert('لطفا یک فایل تصویری یا ویدیویی معتبر انتخاب کنید.');
+    }
     event.target.value = '';
 }
 
@@ -243,18 +287,6 @@ function removePendingImage() {
     pendingImageBase64 = null;
     document.getElementById('img-preview-bar').classList.add('hidden');
     document.getElementById('img-preview-thumb').src = '';
-}
-
-function handleChatVideoSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    readVideoFileAsBase64(file, function(base64Video) {
-        pendingVideoBase64 = base64Video;
-        document.getElementById('video-preview-thumb').src = base64Video;
-        document.getElementById('video-preview-bar').classList.remove('hidden');
-    });
-    event.target.value = '';
 }
 
 function removePendingVideo() {
@@ -266,6 +298,8 @@ function removePendingVideo() {
 function removePendingVoice() {
     pendingVoiceBase64 = null;
     document.getElementById('voice-preview-bar').classList.add('hidden');
+    const audioEl = document.getElementById('voice-preview-audio');
+    if (audioEl) audioEl.src = '';
 }
 
 async function startVoiceRecording() {
@@ -273,6 +307,9 @@ async function startVoiceRecording() {
         alert('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند.');
         return;
     }
+    removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         recordedAudioChunks = [];
@@ -284,11 +321,13 @@ async function startVoiceRecording() {
 
         mediaRecorderInstance.onstop = function() {
             stream.getTracks().forEach(track => track.stop());
+            if (recordedAudioChunks.length === 0) return;
             const blob = new Blob(recordedAudioChunks, { type: 'audio/webm' });
             const reader = new FileReader();
             reader.onload = function(e) {
                 pendingVoiceBase64 = e.target.result;
                 document.getElementById('voice-preview-duration').innerText = formatRecordTime(voiceRecordSeconds);
+                document.getElementById('voice-preview-audio').src = pendingVoiceBase64;
                 document.getElementById('voice-preview-bar').classList.remove('hidden');
             };
             reader.readAsDataURL(blob);
@@ -298,7 +337,7 @@ async function startVoiceRecording() {
         voiceRecordSeconds = 0;
         document.getElementById('mic-record-indicator').classList.remove('hidden');
         document.getElementById('mic-record-timer').innerText = formatRecordTime(voiceRecordSeconds);
-        document.getElementById('btn-mic-record').classList.add('recording-active');
+        document.getElementById('btn-attach-main').classList.add('recording-active');
 
         voiceRecordTimerInterval = setInterval(function() {
             voiceRecordSeconds++;
@@ -318,7 +357,7 @@ function stopVoiceRecording() {
     }
     clearInterval(voiceRecordTimerInterval);
     document.getElementById('mic-record-indicator').classList.add('hidden');
-    document.getElementById('btn-mic-record').classList.remove('recording-active');
+    document.getElementById('btn-attach-main').classList.remove('recording-active');
 }
 
 function cancelVoiceRecording() {
@@ -331,7 +370,7 @@ function cancelVoiceRecording() {
     }
     clearInterval(voiceRecordTimerInterval);
     document.getElementById('mic-record-indicator').classList.add('hidden');
-    document.getElementById('btn-mic-record').classList.remove('recording-active');
+    document.getElementById('btn-attach-main').classList.remove('recording-active');
     pendingVoiceBase64 = null;
     document.getElementById('voice-preview-bar').classList.add('hidden');
 }
@@ -552,6 +591,7 @@ function closeChat() {
     removePendingImage();
     removePendingVideo();
     removePendingVoice();
+    closeAttachMenu();
     document.getElementById('chat-screen').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
     renderChatList();
@@ -960,13 +1000,15 @@ window.switchTab = switchTab;
 window.openChatOptionsMenu = openChatOptionsMenu;
 window.cancelReply = cancelReply;
 window.removePendingImage = removePendingImage;
-window.handleChatImageSelect = handleChatImageSelect;
-window.handleChatVideoSelect = handleChatVideoSelect;
+window.handleChatMediaSelect = handleChatMediaSelect;
 window.removePendingVideo = removePendingVideo;
 window.removePendingVoice = removePendingVoice;
 window.startVoiceRecording = startVoiceRecording;
 window.stopVoiceRecording = stopVoiceRecording;
 window.cancelVoiceRecording = cancelVoiceRecording;
+window.toggleAttachMenu = toggleAttachMenu;
+window.chooseAttachVoice = chooseAttachVoice;
+window.chooseAttachGallery = chooseAttachGallery;
 window.uploadGroupOrChannelAvatar = uploadGroupOrChannelAvatar;
 window.sendMessage = sendMessage;
 window.closeChatOptionsMenu = closeChatOptionsMenu;
