@@ -238,14 +238,23 @@ function closeAttachMenu() {
     document.getElementById('attach-menu').classList.add('hidden');
 }
 
-function chooseAttachVoice() {
+function chooseAttachPhoto() {
     closeAttachMenu();
-    startVoiceRecording();
+    const input = document.getElementById('chat-media-file-input');
+    input.setAttribute('accept', 'image/*');
+    input.click();
 }
 
-function chooseAttachGallery() {
+function chooseAttachVideo() {
     closeAttachMenu();
-    document.getElementById('chat-media-file-input').click();
+    const input = document.getElementById('chat-media-file-input');
+    input.setAttribute('accept', 'video/*');
+    input.click();
+}
+
+function handleVoiceButtonClick() {
+    if (mediaRecorderInstance && mediaRecorderInstance.state === 'recording') return;
+    startVoiceRecording();
 }
 
 document.addEventListener('click', function(e) {
@@ -337,7 +346,7 @@ async function startVoiceRecording() {
         voiceRecordSeconds = 0;
         document.getElementById('mic-record-indicator').classList.remove('hidden');
         document.getElementById('mic-record-timer').innerText = formatRecordTime(voiceRecordSeconds);
-        document.getElementById('btn-attach-main').classList.add('recording-active');
+        document.getElementById('btn-voice-record').classList.add('recording-active');
 
         voiceRecordTimerInterval = setInterval(function() {
             voiceRecordSeconds++;
@@ -357,7 +366,7 @@ function stopVoiceRecording() {
     }
     clearInterval(voiceRecordTimerInterval);
     document.getElementById('mic-record-indicator').classList.add('hidden');
-    document.getElementById('btn-attach-main').classList.remove('recording-active');
+    document.getElementById('btn-voice-record').classList.remove('recording-active');
 }
 
 function cancelVoiceRecording() {
@@ -370,7 +379,7 @@ function cancelVoiceRecording() {
     }
     clearInterval(voiceRecordTimerInterval);
     document.getElementById('mic-record-indicator').classList.add('hidden');
-    document.getElementById('btn-attach-main').classList.remove('recording-active');
+    document.getElementById('btn-voice-record').classList.remove('recording-active');
     pendingVoiceBase64 = null;
     document.getElementById('voice-preview-bar').classList.add('hidden');
 }
@@ -1007,8 +1016,9 @@ window.startVoiceRecording = startVoiceRecording;
 window.stopVoiceRecording = stopVoiceRecording;
 window.cancelVoiceRecording = cancelVoiceRecording;
 window.toggleAttachMenu = toggleAttachMenu;
-window.chooseAttachVoice = chooseAttachVoice;
-window.chooseAttachGallery = chooseAttachGallery;
+window.chooseAttachPhoto = chooseAttachPhoto;
+window.chooseAttachVideo = chooseAttachVideo;
+window.handleVoiceButtonClick = handleVoiceButtonClick;
 window.uploadGroupOrChannelAvatar = uploadGroupOrChannelAvatar;
 window.sendMessage = sendMessage;
 window.closeChatOptionsMenu = closeChatOptionsMenu;
