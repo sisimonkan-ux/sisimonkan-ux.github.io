@@ -57,6 +57,32 @@ db.ref('app_users_v6').on('value', (snapshot) => {
     users = data || {};
     localStorage.setItem('app_users_v6', JSON.stringify(users));
     renderChatList();
+
+    /* اگر همین الان یک کاربر عادی داخل برنامه لاگین است و مدیریت
+       اکانتش را حذف یا تعلیق کرده باشد، بلافاصله (بدون نیاز به رفرش
+       یا خروج/ورود دستی) از حساب خارجش می‌کنیم. */
+    if (currentUser && !currentUser.isAdmin) {
+        const uid = currentUser.userId.toLowerCase();
+        const freshUser = users[uid];
+        let kickMessage = null;
+
+        if (!freshUser) {
+            kickMessage = 'حساب کاربری شما توسط مدیریت حذف شده است.';
+        } else if (freshUser.suspendedUntil && freshUser.suspendedUntil > Date.now()) {
+            const days = Math.ceil((freshUser.suspendedUntil - Date.now()) / (24 * 60 * 60 * 1000));
+            kickMessage = `حساب کاربری شما به‌صورت موقت تعلیق شده است.\nزمان باقی‌مانده: حدود ${days} روز دیگر.`;
+        }
+
+        if (kickMessage) {
+            currentUser = null;
+            localStorage.removeItem('app_current_session_v6');
+            hideMainSections();
+            const authScreen = document.getElementById('auth-screen');
+            if (authScreen) authScreen.classList.remove('hidden');
+            if (typeof switchToLogin === 'function') switchToLogin();
+            alert(kickMessage);
+        }
+    }
 });
 
 db.ref('app_unread_v6').on('value', (snapshot) => {
