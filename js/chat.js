@@ -90,7 +90,7 @@ function renderChatList() {
         });
         if (chatMsgsForPreview.length > 0) {
             const lastMsg = chatMsgsForPreview[chatMsgsForPreview.length - 1];
-            lastMsgText = lastMsg.image ? '📷 تصویر' : (lastMsg.text || '').substring(0, 40);
+            lastMsgText = lastMsg.image ? '📷 تصویر' : lastMsg.video ? '🎥 ویدیو' : lastMsg.voice ? '🎙 پیام صوتی' : (lastMsg.text || '').substring(0, 40);
         }
 
         const div = document.createElement('div');
@@ -222,6 +222,8 @@ function openChat(chatId, title, type, isVerified) {
     document.getElementById('chat-screen').classList.remove('hidden');
 
     removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
     renderMessages(markUnreadIndex);
 }
 
@@ -241,6 +243,97 @@ function removePendingImage() {
     pendingImageBase64 = null;
     document.getElementById('img-preview-bar').classList.add('hidden');
     document.getElementById('img-preview-thumb').src = '';
+}
+
+function handleChatVideoSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    readVideoFileAsBase64(file, function(base64Video) {
+        pendingVideoBase64 = base64Video;
+        document.getElementById('video-preview-thumb').src = base64Video;
+        document.getElementById('video-preview-bar').classList.remove('hidden');
+    });
+    event.target.value = '';
+}
+
+function removePendingVideo() {
+    pendingVideoBase64 = null;
+    document.getElementById('video-preview-bar').classList.add('hidden');
+    document.getElementById('video-preview-thumb').src = '';
+}
+
+function removePendingVoice() {
+    pendingVoiceBase64 = null;
+    document.getElementById('voice-preview-bar').classList.add('hidden');
+}
+
+async function startVoiceRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند.');
+        return;
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recordedAudioChunks = [];
+        mediaRecorderInstance = new MediaRecorder(stream);
+
+        mediaRecorderInstance.ondataavailable = function(e) {
+            if (e.data && e.data.size > 0) recordedAudioChunks.push(e.data);
+        };
+
+        mediaRecorderInstance.onstop = function() {
+            stream.getTracks().forEach(track => track.stop());
+            const blob = new Blob(recordedAudioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                pendingVoiceBase64 = e.target.result;
+                document.getElementById('voice-preview-duration').innerText = formatRecordTime(voiceRecordSeconds);
+                document.getElementById('voice-preview-bar').classList.remove('hidden');
+            };
+            reader.readAsDataURL(blob);
+        };
+
+        mediaRecorderInstance.start();
+        voiceRecordSeconds = 0;
+        document.getElementById('mic-record-indicator').classList.remove('hidden');
+        document.getElementById('mic-record-timer').innerText = formatRecordTime(voiceRecordSeconds);
+        document.getElementById('btn-mic-record').classList.add('recording-active');
+
+        voiceRecordTimerInterval = setInterval(function() {
+            voiceRecordSeconds++;
+            document.getElementById('mic-record-timer').innerText = formatRecordTime(voiceRecordSeconds);
+            if (voiceRecordSeconds >= MAX_VOICE_SECONDS) {
+                stopVoiceRecording();
+            }
+        }, 1000);
+    } catch (err) {
+        alert('دسترسی به میکروفون امکان‌پذیر نشد. لطفا اجازه دسترسی را بررسی کنید.');
+    }
+}
+
+function stopVoiceRecording() {
+    if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+        mediaRecorderInstance.stop();
+    }
+    clearInterval(voiceRecordTimerInterval);
+    document.getElementById('mic-record-indicator').classList.add('hidden');
+    document.getElementById('btn-mic-record').classList.remove('recording-active');
+}
+
+function cancelVoiceRecording() {
+    if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+        recordedAudioChunks = [];
+        mediaRecorderInstance.onstop = function() {
+            mediaRecorderInstance.stream.getTracks().forEach(track => track.stop());
+        };
+        mediaRecorderInstance.stop();
+    }
+    clearInterval(voiceRecordTimerInterval);
+    document.getElementById('mic-record-indicator').classList.add('hidden');
+    document.getElementById('btn-mic-record').classList.remove('recording-active');
+    pendingVoiceBase64 = null;
+    document.getElementById('voice-preview-bar').classList.add('hidden');
 }
 
 function uploadGroupOrChannelAvatar(event) {
@@ -324,7 +417,7 @@ function openMessageMenu(msgId) {
     actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" onclick="triggerAction('reply')"><i class="fa fa-reply"></i> پاسخ به پیام</button>`;
     actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" onclick="triggerAction('forward')"><i class="fa fa-share"></i> فوروارد پیام</button>`;
 
-    let canEdit = isMyMsg && !msgObj.image;
+    let canEdit = isMyMsg && !msgObj.image && !msgObj.video && !msgObj.voice;
     if (currentChat.type === 'channel' && !currentUser.isAdmin) canEdit = false;
     if (canEdit) {
         actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" onclick="triggerAction('edit')"><i class="fa fa-edit"></i> ویرایش متن پیام</button>`;
@@ -457,6 +550,8 @@ function closeChat() {
     currentChat = null;
     cancelReply();
     removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
     document.getElementById('chat-screen').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
     renderChatList();
@@ -466,7 +561,7 @@ function sendMessage() {
     const input = document.getElementById('message-input');
     const text = input.value.trim();
 
-    if ((!text && !pendingImageBase64) || !currentChat) return;
+    if ((!text && !pendingImageBase64 && !pendingVideoBase64 && !pendingVoiceBase64) || !currentChat) return;
 
     if (editingMessageId) {
         const msgObj = messages.find(m => m.id === editingMessageId);
@@ -487,6 +582,8 @@ function sendMessage() {
         chatId: currentChat.id,
         text: text,
         image: pendingImageBase64,
+        video: pendingVideoBase64,
+        voice: pendingVoiceBase64,
         replyTo: replyingToMessageId,
         forwardFrom: null,
         reactions: {},
@@ -522,6 +619,8 @@ function sendMessage() {
     input.value = '';
     cancelReply();
     removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
     renderMessages();
 }
 
@@ -579,7 +678,7 @@ function renderMessages(unreadStartIndex = -1) {
         if (msg.replyTo) {
             const parent = messages.find(m => m.id === msg.replyTo);
             if (parent) {
-                const pText = parent.text ? parent.text.substring(0, 30) : '📷 تصویر';
+                const pText = parent.text ? parent.text.substring(0, 30) : (parent.video ? '🎥 ویدیو' : (parent.voice ? '🎙 پیام صوتی' : '📷 تصویر'));
                 replyHtml = `<div class="replied-box"><i class="fa fa-reply" style="font-size:10px; margin-left:3px;"></i> ${pText}...</div>`;
             }
         }
@@ -587,6 +686,16 @@ function renderMessages(unreadStartIndex = -1) {
         let imageHtml = '';
         if (msg.image) {
             imageHtml = `<img src="${msg.image}" class="message-img" onclick="event.stopPropagation(); viewFullImage('${msg.image}')">`;
+        }
+
+        let videoHtml = '';
+        if (msg.video) {
+            videoHtml = `<video src="${msg.video}" class="message-video" controls onclick="event.stopPropagation();"></video>`;
+        }
+
+        let voiceHtml = '';
+        if (msg.voice) {
+            voiceHtml = `<audio src="${msg.voice}" class="message-voice" controls onclick="event.stopPropagation();"></audio>`;
         }
 
         let editedHtml = msg.isEdited ? '<span class="edited-tag">(ویرایش شده)</span>' : '';
@@ -606,6 +715,8 @@ function renderMessages(unreadStartIndex = -1) {
             ${senderNameHtml}
             ${replyHtml}
             ${imageHtml}
+            ${videoHtml}
+            ${voiceHtml}
             ${formattedText ? `<div>${formattedText} ${editedHtml}</div>` : ''}
             ${reactionsHtml}
         `;
@@ -640,6 +751,8 @@ function startEditMessage(msgId, text) {
     editingMessageId = msgId;
     replyingToMessageId = null;
     removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
     document.getElementById('reply-preview').classList.remove('hidden');
     document.getElementById('reply-text').innerText = 'ویرایش پیام: ' + (text || '');
     const input = document.getElementById('message-input');
@@ -747,6 +860,8 @@ function executeForward(targetChatId) {
         chatId: targetChatId,
         text: messageToForward.text,
         image: messageToForward.image || null,
+        video: messageToForward.video || null,
+        voice: messageToForward.voice || null,
         replyTo: null,
         forwardFrom: sourceTitle,
         reactions: {},
@@ -846,6 +961,12 @@ window.openChatOptionsMenu = openChatOptionsMenu;
 window.cancelReply = cancelReply;
 window.removePendingImage = removePendingImage;
 window.handleChatImageSelect = handleChatImageSelect;
+window.handleChatVideoSelect = handleChatVideoSelect;
+window.removePendingVideo = removePendingVideo;
+window.removePendingVoice = removePendingVoice;
+window.startVoiceRecording = startVoiceRecording;
+window.stopVoiceRecording = stopVoiceRecording;
+window.cancelVoiceRecording = cancelVoiceRecording;
 window.uploadGroupOrChannelAvatar = uploadGroupOrChannelAvatar;
 window.sendMessage = sendMessage;
 window.closeChatOptionsMenu = closeChatOptionsMenu;

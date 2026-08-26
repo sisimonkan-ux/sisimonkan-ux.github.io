@@ -28,7 +28,17 @@ let messageToForward = null;
 let messageToDelete = null;
 let selectedMessageObj = null;
 let pendingImageBase64 = null;
+let pendingVideoBase64 = null;
+let pendingVoiceBase64 = null;
 let tempAuth = {};
+
+/* ---------- ضبط ویس ---------- */
+let mediaRecorderInstance = null;
+let recordedAudioChunks = [];
+let voiceRecordTimerInterval = null;
+let voiceRecordSeconds = 0;
+const MAX_VOICE_SECONDS = 120;      // حداکثر ۲ دقیقه ویس
+const MAX_VIDEO_FILE_MB = 15;       // حداکثر حجم ویدیو (به مگابایت)
 
 let users = JSON.parse(localStorage.getItem('app_users_v6')) || {};
 let messages = JSON.parse(localStorage.getItem('app_messages_v6')) || [];
@@ -133,6 +143,29 @@ function compressAndReadImage(file, callback) {
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+}
+
+function readVideoFileAsBase64(file, callback) {
+    if (!file.type.startsWith('video/')) {
+        alert('لطفا یک فایل ویدیویی معتبر انتخاب کنید.');
+        return;
+    }
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > MAX_VIDEO_FILE_MB) {
+        alert(`حجم ویدیو زیاد است. لطفا ویدیویی کمتر از ${MAX_VIDEO_FILE_MB} مگابایت انتخاب کنید.`);
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        callback(e.target.result, file.size);
+    };
+    reader.readAsDataURL(file);
+}
+
+function formatRecordTime(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const s = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
 }
 
 function getSavedMessagesChatId() {
