@@ -159,6 +159,8 @@ html, body {
     padding: 8px 8px calc(32px + env(safe-area-inset-bottom, 0px)) 8px;
     flex-shrink: 0;
     width: 100%;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .chat-input-area { padding: 6px 10px; background: #242f3d; display: flex; gap: 8px; align-items: center; border-radius: 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); }
@@ -170,11 +172,88 @@ html, body {
 .chat-locked-notice { background: #242f3d; color: #e53935; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; }
 .reply-preview { padding: 6px 12px; background: #17212b; display: flex; justify-content: space-between; border-top: 1px solid #5288c1; font-size: 12px; border-radius: 8px 8px 0 0; margin-bottom: 4px; }
 
-.img-preview-bar { padding: 8px 12px; background: #17212b; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #5288c1; border-radius: 8px 8px 0 0; margin-bottom: 4px; }
-.img-preview-bar img { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
-.img-preview-bar video { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; background: #000; }
+/* Attach (+) button and its popup menu */
+.attach-wrapper { position: relative; display: flex; }
+.attach-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: #242f3d;
+    border: 1px solid #344558;
+    border-radius: 10px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 180px;
+    z-index: 20;
+}
+.attach-menu button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding: 12px 14px;
+    text-align: right;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+.attach-menu button:hover { background: #2b5278; }
+.attach-menu button + button { border-top: 1px solid #344558; }
+#btn-attach-main.recording-active { background: #e53935 !important; }
 
-#btn-mic-record.recording-active { background: #e53935 !important; }
+/* Shared preview bar for image / video / voice, each with its own explicit send button
+   so the send action is never hidden or pushed off screen. */
+.media-preview-bar {
+    background: #17212b;
+    border-top: 1px solid #5288c1;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    overflow: hidden;
+}
+.media-preview-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+}
+.media-preview-visual {
+    max-width: 220px;
+    max-height: 160px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    object-fit: contain;
+    background: #000;
+    flex-shrink: 0;
+}
+.media-preview-audio { flex: 1; height: 36px; }
+.btn-media-cancel { cursor: pointer; color: #e53935; font-size: 16px; margin-right: auto; padding: 6px; }
+.media-preview-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #0e1621;
+}
+.media-preview-hint { font-size: 11px; color: #7f91a4; }
+.btn-media-send {
+    background: #5288c1;
+    border: none;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-right: auto;
+}
 
 .mic-record-indicator {
     padding: 8px 12px;
@@ -200,6 +279,7 @@ html, body {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
 }
+.rec-controls { display: flex; align-items: center; }
 .btn-cancel-record, .btn-stop-record {
     border: none;
     border-radius: 6px;
