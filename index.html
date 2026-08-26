@@ -226,12 +226,40 @@
                 <i class="fa fa-times" style="cursor:pointer; color:#e53935;" onclick="removePendingImage()"></i>
             </div>
 
+            <div id="video-preview-bar" class="img-preview-bar hidden">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <video id="video-preview-thumb" src="" muted></video>
+                    <span style="font-size:12px; color:#6ab0ff;">ویدیو انتخاب شد</span>
+                </div>
+                <i class="fa fa-times" style="cursor:pointer; color:#e53935;" onclick="removePendingVideo()"></i>
+            </div>
+
+            <div id="voice-preview-bar" class="img-preview-bar hidden">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa fa-microphone" style="color:#6ab0ff;"></i>
+                    <span style="font-size:12px; color:#6ab0ff;">پیام صوتی ضبط شد (<span id="voice-preview-duration">00:00</span>)</span>
+                </div>
+                <i class="fa fa-times" style="cursor:pointer; color:#e53935;" onclick="removePendingVoice()"></i>
+            </div>
+
+            <div id="mic-record-indicator" class="mic-record-indicator hidden">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="rec-dot"></span>
+                    <span>در حال ضبط... <span id="mic-record-timer">00:00</span></span>
+                </div>
+                <button type="button" class="btn-cancel-record" onclick="cancelVoiceRecording()"><i class="fa fa-trash"></i></button>
+                <button type="button" class="btn-stop-record" onclick="stopVoiceRecording()"><i class="fa fa-check"></i></button>
+            </div>
+
             <div class="chat-input-area" id="input-area">
                 <button type="button" class="btn-attach-img" onclick="document.getElementById('chat-img-file-input').click()"><i class="fa fa-image"></i></button>
+                <button type="button" class="btn-attach-img" onclick="document.getElementById('chat-video-file-input').click()"><i class="fa fa-video"></i></button>
                 <input type="file" id="chat-img-file-input" accept="image/*" class="hidden" onchange="handleChatImageSelect(event)">
+                <input type="file" id="chat-video-file-input" accept="video/*" class="hidden" onchange="handleChatVideoSelect(event)">
                 <input type="file" id="group-avatar-file-input" accept="image/*" class="hidden" onchange="uploadGroupOrChannelAvatar(event)">
 
                 <input type="text" id="message-input" dir="auto" placeholder="نوشتن پیام...">
+                <button type="button" id="btn-mic-record" class="btn-attach-img" onclick="startVoiceRecording()"><i class="fa fa-microphone"></i></button>
                 <button onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
             </div>
 
