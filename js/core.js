@@ -237,7 +237,19 @@ window.switchMainSection = switchMainSection;
 function setupViewportKeyboardFix() {
     function updateHeight() {
         const vv = window.visualViewport;
-        const h = vv ? vv.height : window.innerHeight;
+        // برخی مرورگرهای موبایل (مخصوصاً غیر از کروم) مقدار visualViewport.height
+        // را کوچک‌تر از ارتفاع واقعی صفحه گزارش می‌دهند، حتی وقتی کیبورد بسته است.
+        // اگر همیشه همان مقدار را اعمال کنیم، صفحه کوتاه‌تر از حالت واقعی می‌شود
+        // و پس‌زمینه‌ی body (فضای خالی) بالا/پایین کادر پیام دیده می‌شود.
+        // برای جلوگیری از این باگ، فقط وقتی ارتفاع را کوچک می‌کنیم که واقعاً
+        // کیبورد باز شده باشد (اختلاف محسوس با window.innerHeight)؛ در غیر این
+        // صورت از window.innerHeight (که همیشه ارتفاع واقعی صفحه است) استفاده می‌کنیم.
+        const winH = window.innerHeight;
+        let h = winH;
+        if (vv && winH - vv.height > 100) {
+            // اختلاف محسوس = کیبورد باز است، از ارتفاع واقعی قابل مشاهده استفاده کن
+            h = vv.height;
+        }
         document.querySelectorAll('.screen').forEach(el => {
             el.style.height = h + 'px';
         });
