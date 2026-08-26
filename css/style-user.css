@@ -157,7 +157,12 @@ html, body {
 
 .chat-bottom-wrapper {
     background: #0e1621;
-    padding: 8px 8px calc(32px + env(safe-area-inset-bottom, 0px)) 8px;
+    /* توجه: فاصله‌ی امن پایین صفحه (safe-area-inset-bottom) همین‌جا اضافه
+       نمی‌شود چون خود .screen (والد این عنصر) از قبل این فاصله را در
+       padding-bottom خودش رزرو کرده؛ اضافه کردن دوباره‌ی env() اینجا باعث
+       جمع شدن دو برابری آن و ایجاد یک فاصله‌ی خالی بزرگ زیر کادر پیام در
+       مرورگرهایی می‌شد که مقدار safe-area-inset-bottom را بزرگ گزارش می‌کنند. */
+    padding: 8px 8px 10px 8px;
     flex-shrink: 0;
     width: 100%;
     max-height: 60vh;
