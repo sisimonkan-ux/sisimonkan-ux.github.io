@@ -303,9 +303,33 @@ function searchUser() {
         const isVerified = searchId === 'admin' || (users[searchId] && users[searchId].isAdmin);
         openChat(searchId, targetName, 'direct', isVerified);
         document.getElementById('search-input').value = '';
-    } else {
-        alert('کاربری با این آیدی یافت نشد!');
+        return;
     }
+
+    /* اگر کاربر در نسخه‌ی محلی (users) پیدا نشد، به‌جای اعلام فوری «یافت نشد»
+       یک‌بار مستقیماً از سرور فایربیس همان آیدی را می‌خوانیم.
+       این حالت مخصوصاً برای کاربرانی رخ می‌دهد که تازه ثبت‌نام/وارد شده‌اند:
+       لیستنر app_users_v6 هنوز کل لیست کاربران قدیمی را از سرور کامل
+       دریافت نکرده، در نتیجه جستجوی اکانت‌های از قبل ساخته‌شده با شکست
+       مواجه می‌شد در حالی که آن اکانت‌ها واقعاً روی سرور وجود داشتند. */
+    const searchBtn = document.querySelector('.search-box button[onclick="searchUser()"]');
+    if (searchBtn) searchBtn.disabled = true;
+
+    db.ref('app_users_v6/' + searchId).once('value').then(snapshot => {
+        if (searchBtn) searchBtn.disabled = false;
+        const data = snapshot.val();
+        if (data) {
+            users[searchId] = data;
+            localStorage.setItem('app_users_v6', JSON.stringify(users));
+            openChat(searchId, `${data.name} ${data.family}`, 'direct', !!data.isAdmin);
+            document.getElementById('search-input').value = '';
+        } else {
+            alert('کاربری با این آیدی یافت نشد!');
+        }
+    }).catch(() => {
+        if (searchBtn) searchBtn.disabled = false;
+        alert('خطا در اتصال به سرور. لطفاً فیلترشکن/اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.');
+    });
 }
 
 window.login = login;
