@@ -224,32 +224,7 @@ function openChat(chatId, title, type, isVerified) {
     removePendingImage();
     removePendingVideo();
     removePendingVoice();
-    closeAttachMenu();
     renderMessages(markUnreadIndex);
-}
-
-/* ---------- منوی دکمه پیوست (عکس/ویدیو + پیام صوتی در یک دکمه) ---------- */
-function toggleAttachMenu(event) {
-    if (event) event.stopPropagation();
-    document.getElementById('attach-menu').classList.toggle('hidden');
-}
-
-function closeAttachMenu() {
-    document.getElementById('attach-menu').classList.add('hidden');
-}
-
-function chooseAttachPhoto() {
-    closeAttachMenu();
-    const input = document.getElementById('chat-media-file-input');
-    input.setAttribute('accept', 'image/*');
-    input.click();
-}
-
-function chooseAttachVideo() {
-    closeAttachMenu();
-    const input = document.getElementById('chat-media-file-input');
-    input.setAttribute('accept', 'video/*');
-    input.click();
 }
 
 function handleVoiceButtonClick() {
@@ -257,38 +232,25 @@ function handleVoiceButtonClick() {
     startVoiceRecording();
 }
 
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById('attach-menu');
-    const btn = document.getElementById('btn-attach-main');
-    if (!menu || menu.classList.contains('hidden')) return;
-    if (menu.contains(e.target) || (btn && btn.contains(e.target))) return;
-    menu.classList.add('hidden');
-});
-
-/* ---------- انتخاب فایل از گالری: عکس یا ویدیو ---------- */
+/* ---------- انتخاب فایل از گالری: فقط عکس ---------- */
 function handleChatMediaSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+        alert('لطفا یک فایل تصویری معتبر انتخاب کنید.');
+        event.target.value = '';
+        return;
+    }
+
     removePendingImage();
-    removePendingVideo();
     removePendingVoice();
 
-    if (file.type.startsWith('image/')) {
-        compressAndReadImage(file, function(base64Img) {
-            pendingImageBase64 = base64Img;
-            document.getElementById('img-preview-thumb').src = base64Img;
-            document.getElementById('img-preview-bar').classList.remove('hidden');
-        });
-    } else if (file.type.startsWith('video/')) {
-        readVideoFileAsBase64(file, function(base64Video) {
-            pendingVideoBase64 = base64Video;
-            document.getElementById('video-preview-thumb').src = base64Video;
-            document.getElementById('video-preview-bar').classList.remove('hidden');
-        });
-    } else {
-        alert('لطفا یک فایل تصویری یا ویدیویی معتبر انتخاب کنید.');
-    }
+    compressAndReadImage(file, function(base64Img) {
+        pendingImageBase64 = base64Img;
+        document.getElementById('img-preview-thumb').src = base64Img;
+        document.getElementById('img-preview-bar').classList.remove('hidden');
+    });
     event.target.value = '';
 }
 
@@ -300,8 +262,6 @@ function removePendingImage() {
 
 function removePendingVideo() {
     pendingVideoBase64 = null;
-    document.getElementById('video-preview-bar').classList.add('hidden');
-    document.getElementById('video-preview-thumb').src = '';
 }
 
 function removePendingVoice() {
@@ -600,7 +560,6 @@ function closeChat() {
     removePendingImage();
     removePendingVideo();
     removePendingVoice();
-    closeAttachMenu();
     document.getElementById('chat-screen').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
     renderChatList();
@@ -1015,9 +974,6 @@ window.removePendingVoice = removePendingVoice;
 window.startVoiceRecording = startVoiceRecording;
 window.stopVoiceRecording = stopVoiceRecording;
 window.cancelVoiceRecording = cancelVoiceRecording;
-window.toggleAttachMenu = toggleAttachMenu;
-window.chooseAttachPhoto = chooseAttachPhoto;
-window.chooseAttachVideo = chooseAttachVideo;
 window.handleVoiceButtonClick = handleVoiceButtonClick;
 window.uploadGroupOrChannelAvatar = uploadGroupOrChannelAvatar;
 window.sendMessage = sendMessage;
