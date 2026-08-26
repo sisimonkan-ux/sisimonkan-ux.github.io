@@ -127,6 +127,24 @@ html, body {
     border: 1px solid rgba(255,255,255,0.1);
 }
 
+.message-video {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 8px;
+    margin: 5px 0;
+    display: block;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: #000;
+}
+
+.message-voice {
+    max-width: 220px;
+    width: 100%;
+    margin: 5px 0;
+    display: block;
+    height: 36px;
+}
+
 .sender-name { font-size: 11px; color: #e5824b; margin-bottom: 4px; font-weight: bold; display: flex; align-items: center; gap: 3px; width: fit-content; cursor: pointer; }
 .forwarded-header { font-size: 11px; color: #6ab0ff; font-style: italic; margin-bottom: 5px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 3px; }
 .edited-tag { font-size: 10px; color: #aaa; margin-right: 5px; font-style: italic; }
@@ -154,6 +172,44 @@ html, body {
 
 .img-preview-bar { padding: 8px 12px; background: #17212b; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #5288c1; border-radius: 8px 8px 0 0; margin-bottom: 4px; }
 .img-preview-bar img { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
+.img-preview-bar video { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; background: #000; }
+
+#btn-mic-record.recording-active { background: #e53935 !important; }
+
+.mic-record-indicator {
+    padding: 8px 12px;
+    background: #17212b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e53935;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 4px;
+    color: #fff;
+    font-size: 13px;
+}
+.rec-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e53935;
+    display: inline-block;
+    animation: rec-blink 1s infinite;
+}
+@keyframes rec-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+.btn-cancel-record, .btn-stop-record {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-right: 6px;
+    cursor: pointer;
+    color: #fff;
+}
+.btn-cancel-record { background: #3a4a5c; }
+.btn-stop-record { background: #5288c1; }
 
 /* Settings UI */
 .settings-container { padding: 15px; flex: 1; overflow-y: auto; background: #0e1621; }
