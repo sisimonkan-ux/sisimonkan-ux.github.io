@@ -268,14 +268,15 @@
                 <div class="attach-wrapper">
                     <button type="button" class="btn-attach-img" id="btn-attach-main" onclick="toggleAttachMenu(event)"><i class="fa fa-paperclip"></i></button>
                     <div id="attach-menu" class="attach-menu hidden">
-                        <button type="button" onclick="chooseAttachVoice()"><i class="fa fa-microphone"></i> پیام صوتی</button>
-                        <button type="button" onclick="chooseAttachGallery()"><i class="fa fa-image"></i> گالری (عکس / ویدیو)</button>
+                        <button type="button" onclick="chooseAttachPhoto()"><i class="fa fa-image"></i> انتخاب تصویر</button>
+                        <button type="button" onclick="chooseAttachVideo()"><i class="fa fa-video"></i> انتخاب فیلم</button>
                     </div>
                 </div>
                 <input type="file" id="chat-media-file-input" accept="image/*,video/*" class="hidden" onchange="handleChatMediaSelect(event)">
                 <input type="file" id="group-avatar-file-input" accept="image/*" class="hidden" onchange="uploadGroupOrChannelAvatar(event)">
 
                 <input type="text" id="message-input" dir="auto" placeholder="نوشتن پیام...">
+                <button type="button" class="btn-voice-record" id="btn-voice-record" onclick="handleVoiceButtonClick()"><i class="fa fa-microphone"></i></button>
                 <button onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
             </div>
 
