@@ -114,6 +114,10 @@ function login() {
     }
 
     if (foundUser) {
+        if (!foundUser.isAdmin && foundUser.suspendedUntil && foundUser.suspendedUntil > Date.now()) {
+            const days = Math.ceil((foundUser.suspendedUntil - Date.now()) / (24 * 60 * 60 * 1000));
+            return alert(`حساب شما توسط مدیریت به‌صورت موقت تعلیق شده است.\nزمان باقی‌مانده: حدود ${days} روز دیگر.`);
+        }
         currentUser = foundUser;
         persistSession();
         initApp();
@@ -145,12 +149,38 @@ function restoreSession() {
         if (savedUser.isAdmin) {
             // آواتار مدیر را از آخرین نسخه‌ی همگام‌شده می‌خوانیم
             currentUser = { ...savedUser, avatar: (users['admin'] ? users['admin'].avatar : savedUser.avatar) };
-        } else {
-            const freshUser = users[savedUser.userId.toLowerCase()];
-            // اگر کاربر هنوز در دیتابیس وجود دارد از نسخه‌ی تازه‌اش استفاده کن، وگرنه از نسخه‌ی ذخیره‌شده
-            currentUser = freshUser || savedUser;
+            initApp();
+            return;
         }
-        initApp();
+
+        const uid = savedUser.userId.toLowerCase();
+
+        /* برای اطمینان از این‌که اکانت توسط مدیریت حذف یا تعلیق نشده، به‌جای
+           اتکای صرف به کش محلی (که ممکن است هنوز کامل با سرور سینک نشده
+           باشد)، یک‌بار مستقیم از خود فایربیس همان کاربر را می‌خوانیم. */
+        db.ref('app_users_v6/' + uid).once('value').then(function(snapshot) {
+            const freshUser = snapshot.val();
+
+            if (!freshUser) {
+                localStorage.removeItem('app_current_session_v6');
+                alert('حساب کاربری شما توسط مدیریت حذف شده است.');
+                return;
+            }
+            if (freshUser.suspendedUntil && freshUser.suspendedUntil > Date.now()) {
+                localStorage.removeItem('app_current_session_v6');
+                const days = Math.ceil((freshUser.suspendedUntil - Date.now()) / (24 * 60 * 60 * 1000));
+                alert(`حساب کاربری شما به‌صورت موقت تعلیق شده است.\nزمان باقی‌مانده: حدود ${days} روز دیگر.`);
+                return;
+            }
+
+            users[uid] = freshUser;
+            currentUser = freshUser;
+            initApp();
+        }).catch(function() {
+            // در صورت نبود اتصال، برای حفظ قابلیت استفاده‌ی آفلاین، با نسخه‌ی محلی وارد شو
+            currentUser = users[uid] || savedUser;
+            initApp();
+        });
     } catch (e) {
         localStorage.removeItem('app_current_session_v6');
     }
