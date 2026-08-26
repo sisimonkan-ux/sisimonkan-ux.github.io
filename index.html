@@ -229,17 +229,6 @@
                 </div>
             </div>
 
-            <div id="video-preview-bar" class="media-preview-bar hidden">
-                <div class="media-preview-top">
-                    <video id="video-preview-thumb" src="" class="media-preview-visual" controls></video>
-                    <i class="fa fa-times btn-media-cancel" onclick="removePendingVideo()"></i>
-                </div>
-                <div class="media-preview-bottom">
-                    <span class="media-preview-hint">توضیح ویدیو رو تو کادر پیام بنویس</span>
-                    <button type="button" class="btn-media-send" onclick="sendMessage()"><i class="fa fa-paper-plane"></i> ارسال</button>
-                </div>
-            </div>
-
             <div id="voice-preview-bar" class="media-preview-bar hidden">
                 <div class="media-preview-top">
                     <i class="fa fa-microphone" style="color:#6ab0ff; font-size:18px;"></i>
@@ -265,14 +254,8 @@
             </div>
 
             <div class="chat-input-area" id="input-area">
-                <div class="attach-wrapper">
-                    <button type="button" class="btn-attach-img" id="btn-attach-main" onclick="toggleAttachMenu(event)"><i class="fa fa-paperclip"></i></button>
-                    <div id="attach-menu" class="attach-menu hidden">
-                        <button type="button" onclick="chooseAttachPhoto()"><i class="fa fa-image"></i> انتخاب تصویر</button>
-                        <button type="button" onclick="chooseAttachVideo()"><i class="fa fa-video"></i> انتخاب فیلم</button>
-                    </div>
-                </div>
-                <input type="file" id="chat-media-file-input" accept="image/*,video/*" class="hidden" onchange="handleChatMediaSelect(event)">
+                <button type="button" class="btn-attach-img" id="btn-attach-main" onclick="document.getElementById('chat-media-file-input').click()"><i class="fa fa-image"></i></button>
+                <input type="file" id="chat-media-file-input" accept="image/*" class="hidden" onchange="handleChatMediaSelect(event)">
                 <input type="file" id="group-avatar-file-input" accept="image/*" class="hidden" onchange="uploadGroupOrChannelAvatar(event)">
 
                 <input type="text" id="message-input" dir="auto" placeholder="نوشتن پیام...">
