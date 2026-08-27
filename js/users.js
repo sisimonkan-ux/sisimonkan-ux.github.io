@@ -255,10 +255,13 @@ function openSettings() {
 }
 
 function openProfile() {
-    document.getElementById('settings-profile-fullname').innerText = `${currentUser.name} ${currentUser.family}`;
-    document.getElementById('settings-profile-id').innerText = `@${currentUser.userId}`;
+    // Update profile display
+    document.getElementById('profile-fullname').innerText = `${currentUser.name} ${currentUser.family}`;
+    document.getElementById('profile-userid').innerText = `@${currentUser.userId}`;
+    document.getElementById('profile-username-display').innerText = 'آخرین بازدید به تازگی';
 
-    const bioEl = document.getElementById('settings-profile-bio');
+    // Update bio
+    const bioEl = document.getElementById('profile-bio');
     if (currentUser.bio && currentUser.bio.trim()) {
         bioEl.innerText = currentUser.bio;
         bioEl.classList.remove('profile-bio-empty');
@@ -267,11 +270,95 @@ function openProfile() {
         bioEl.classList.add('profile-bio-empty');
     }
 
-    renderSettingsAvatar();
+    // Update avatar
+    renderProfileAvatar();
+    
+    // Update groups display
+    updateProfileGroups();
 
     hideMainSections();
     document.getElementById('profile-screen').classList.remove('hidden');
     setActiveNav('profile');
+}
+
+function renderProfileAvatar() {
+    const avatarEl = document.getElementById('profile-avatar-display');
+    if (currentUser.avatar) {
+        avatarEl.style.backgroundImage = `url('${currentUser.avatar}')`;
+        avatarEl.style.backgroundSize = 'cover';
+        avatarEl.style.backgroundPosition = 'center';
+        avatarEl.innerText = '';
+    } else {
+        avatarEl.style.backgroundImage = 'none';
+        avatarEl.innerText = (currentUser.name ? currentUser.name[0] : '؟').toUpperCase();
+    }
+}
+
+function updateProfileGroups() {
+    const groupsDisplay = document.getElementById('profile-groups-display');
+    groupsDisplay.innerHTML = '';
+    
+    // Get user's groups
+    const userGroups = Object.values(chats).filter(c => c.type === 'group' && c.members && c.members.includes(currentUser.userId));
+    
+    if (userGroups.length === 0) {
+        groupsDisplay.innerHTML = '<span style="color:#7f91a4; font-size:13px;">در گروهی عضو نیستید</span>';
+    } else {
+        userGroups.slice(0, 3).forEach(group => {
+            const groupAvatar = document.createElement('div');
+            groupAvatar.style.cssText = `
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #17212b;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                color: #5288c1;
+                border: 1px solid #242f3d;
+                cursor: pointer;
+                title: ${group.name}
+            `;
+            groupAvatar.innerText = (group.name ? group.name[0] : 'G').toUpperCase();
+            groupsDisplay.appendChild(groupAvatar);
+        });
+    }
+}
+
+function openProfileMenu() {
+    const menuHTML = `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="modal-btn btn-secondary" onclick="switchMainSection('settings')" style="justify-content:flex-start; padding:11px 15px;">
+                <i class="fa fa-cog" style="margin-left:10px;"></i> تنظیمات
+            </button>
+            <button class="modal-btn btn-danger" onclick="logout()" style="justify-content:flex-start; padding:11px 15px;">
+                <i class="fa fa-sign-out-alt" style="margin-left:10px;"></i> خروج از حساب
+            </button>
+        </div>
+    `;
+    
+    const modal = document.getElementById('message-menu-modal');
+    modal.querySelector('.quick-reactions')?.remove();
+    modal.querySelector('#message-reactions-list')?.remove();
+    modal.querySelector('#message-menu-actions').innerHTML = menuHTML;
+    modal.classList.remove('hidden');
+}
+
+function toggleProfileMute() {
+    // This is for the user's own profile mute status (if needed)
+    alert('این قابلیت در حال توسعه است');
+}
+
+function makeProfileCall() {
+    alert('تماس در حال توسعه است');
+}
+
+function copyProfileId() {
+    const userId = `@${currentUser.userId}`;
+    navigator.clipboard.writeText(userId).then(() => {
+        alert('نام کاربری کپی شد: ' + userId);
+    });
 }
 
 function saveSettings() {
@@ -518,6 +605,13 @@ window.copyContactProfileId = copyContactProfileId;
 window.contactProfileMessage = contactProfileMessage;
 window.contactProfileCall = contactProfileCall;
 window.toggleContactMute = toggleContactMute;
+window.openProfile = openProfile;
+window.renderProfileAvatar = renderProfileAvatar;
+window.updateProfileGroups = updateProfileGroups;
+window.openProfileMenu = openProfileMenu;
+window.toggleProfileMute = toggleProfileMute;
+window.makeProfileCall = makeProfileCall;
+window.copyProfileId = copyProfileId;
 
 /* هنگام لود اولیه‌ی صفحه، اگر کاربر قبلاً وارد شده، به‌جای صفحه‌ی ورود مستقیم به چت‌ها می‌رویم.
    کمی تأخیر می‌دهیم تا لیستنرهای دیتابیس در core.js اولین دیتای users را بگیرند. */
