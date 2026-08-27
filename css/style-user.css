@@ -138,12 +138,70 @@ html, body {
     background: #000;
 }
 
-.message-voice {
-    max-width: 220px;
-    width: 100%;
+/* ===== TELEGRAM STYLE VOICE MESSAGE BUTTON ===== */
+.voice-message-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #3a6a9e 0%, #2b5278 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
     margin: 5px 0;
-    display: block;
-    height: 36px;
+    min-width: 120px;
+    max-width: 160px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.voice-message-button:active {
+    transform: scale(0.96);
+}
+
+.voice-message-button.playing {
+    background: linear-gradient(135deg, #5288c1 0%, #3a6a9e 100%);
+    box-shadow: 0 0 12px rgba(82, 136, 193, 0.4);
+}
+
+.voice-play-icon {
+    font-size: 16px;
+    color: #fff;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+}
+
+.voice-message-button.playing .voice-play-icon {
+    color: #fff;
+}
+
+.voice-duration {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    font-family: 'Courier New', monospace;
+    flex-shrink: 0;
+}
+
+.message.my-msg .voice-message-button {
+    background: linear-gradient(135deg, #2b5278 0%, #1e3f5a 100%);
+}
+
+.message.my-msg .voice-message-button.playing {
+    background: linear-gradient(135deg, #3a6a9e 0%, #2b5278 100%);
+    box-shadow: 0 0 12px rgba(82, 136, 193, 0.5);
+}
+
+.message-voice {
+    display: none !important;
 }
 
 .sender-name { font-size: 11px; color: #e5824b; margin-bottom: 4px; font-weight: bold; display: flex; align-items: center; gap: 3px; width: fit-content; cursor: pointer; }
