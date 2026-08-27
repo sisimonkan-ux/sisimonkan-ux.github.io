@@ -221,32 +221,79 @@ function uploadUserAvatar(event) {
 }
 
 function renderSettingsAvatar() {
-    const avatarBox = document.getElementById('settings-avatar-box');
-    if (currentUser.avatar) {
-        avatarBox.innerHTML = `<img src="${currentUser.avatar}" class="profile-avatar profile-avatar-lg">`;
-    } else {
-        const initial = currentUser.name ? currentUser.name.charAt(0) : '؟';
-        avatarBox.innerHTML = `<div class="profile-avatar profile-avatar-lg" id="settings-avatar-icon">${initial}</div>`;
+    const initial = currentUser.name ? currentUser.name.charAt(0) : '؟';
+    const avatarHtml = currentUser.avatar
+        ? `<img src="${currentUser.avatar}" class="profile-avatar profile-avatar-lg">`
+        : `<div class="profile-avatar profile-avatar-lg" id="settings-avatar-icon">${initial}</div>`;
+    const avatarHtmlSm = currentUser.avatar
+        ? `<img src="${currentUser.avatar}" class="profile-avatar">`
+        : `<div class="profile-avatar" id="settings-menu-avatar-icon">${initial}</div>`;
+
+    const box1 = document.getElementById('settings-avatar-box');
+    if (box1) box1.innerHTML = avatarHtml;
+    const box2 = document.getElementById('edit-avatar-box');
+    if (box2) box2.innerHTML = avatarHtml;
+    const box3 = document.getElementById('settings-menu-avatar-box');
+    if (box3) box3.innerHTML = avatarHtmlSm;
+
+    renderStoryRing();
+}
+
+/* حلقه‌ی رنگی استوری دور آواتار پروفایل، فقط تا ۲۴ ساعت بعد از انتشار فعال است */
+const STORY_LIFETIME_MS = 24 * 60 * 60 * 1000;
+function renderStoryRing() {
+    const ring = document.getElementById('own-story-ring');
+    if (!ring) return;
+    const hasStory = currentUser.story && currentUser.story.ts && (Date.now() - currentUser.story.ts < STORY_LIFETIME_MS);
+    ring.classList.toggle('no-story', !hasStory);
+}
+
+function uploadUserStory(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    compressAndReadImage(file, function(base64Image) {
+        currentUser.story = { img: base64Image, ts: Date.now() };
+        if (!currentUser.isAdmin) {
+            if (users[currentUser.userId.toLowerCase()]) {
+                users[currentUser.userId.toLowerCase()].story = currentUser.story;
+                saveUsers(currentUser.userId.toLowerCase());
+            }
+        } else {
+            if (!users['admin']) users['admin'] = currentUser;
+            users['admin'].story = currentUser.story;
+            saveUsers('admin');
+        }
+        persistSession();
+        renderStoryRing();
+        alert('استوری شما منتشر شد و تا ۲۴ ساعت روی پروفایلتان نمایش داده می‌شود.');
+    });
+}
+
+function viewOwnStory() {
+    const hasStory = currentUser.story && currentUser.story.ts && (Date.now() - currentUser.story.ts < STORY_LIFETIME_MS);
+    if (!hasStory) {
+        document.getElementById('user-avatar-file-input').click();
+        return;
     }
+    document.getElementById('full-image-target').src = currentUser.story.img;
+    document.getElementById('image-viewer-modal').classList.remove('hidden');
+}
+
+function comingSoon(label) {
+    alert(`${label}: این بخش به‌زودی اضافه می‌شود.`);
 }
 
 function openSettings() {
-    document.getElementById('setting-name').value = currentUser.name || '';
-    document.getElementById('setting-family').value = currentUser.family || '';
-    document.getElementById('setting-userid').value = currentUser.userId || '';
-    document.getElementById('setting-username').value = currentUser.username || '';
-    document.getElementById('setting-password').value = currentUser.password || '';
-    document.getElementById('setting-bio').value = currentUser.bio || '';
+    document.getElementById('settings-menu-fullname').innerText = `${currentUser.name} ${currentUser.family}`;
+    document.getElementById('settings-menu-userid').innerText = `@${currentUser.userId}`;
+    renderSettingsAvatar();
 
     const btnAdminPanel = document.getElementById('btn-admin-panel');
-    if(currentUser.isAdmin) {
+    if (currentUser.isAdmin) {
         btnAdminPanel.classList.remove('hidden');
-        document.getElementById('setting-userid').disabled = true;
-        document.getElementById('setting-username').disabled = true;
     } else {
         btnAdminPanel.classList.add('hidden');
-        document.getElementById('setting-userid').disabled = false;
-        document.getElementById('setting-username').disabled = false;
     }
 
     hideMainSections();
@@ -254,14 +301,40 @@ function openSettings() {
     setActiveNav('settings');
 }
 
-function openProfile() {
-    // Update profile display
-    document.getElementById('profile-fullname').innerText = `${currentUser.name} ${currentUser.family}`;
-    document.getElementById('profile-userid').innerText = `@${currentUser.userId}`;
-    document.getElementById('profile-username-display').innerText = 'آخرین بازدید به تازگی';
+function openEditProfile() {
+    document.getElementById('setting-name').value = currentUser.name || '';
+    document.getElementById('setting-family').value = currentUser.family || '';
+    document.getElementById('setting-userid').value = currentUser.userId || '';
+    document.getElementById('setting-username').value = currentUser.username || '';
+    document.getElementById('setting-password').value = currentUser.password || '';
+    document.getElementById('setting-bio').value = currentUser.bio || '';
 
-    // Update bio
-    const bioEl = document.getElementById('profile-bio');
+    document.getElementById('setting-userid').disabled = !!currentUser.isAdmin;
+    document.getElementById('setting-username').disabled = !!currentUser.isAdmin;
+
+    renderSettingsAvatar();
+
+    document.getElementById('settings-screen').classList.add('hidden');
+    document.getElementById('profile-screen').classList.add('hidden');
+    document.getElementById('edit-profile-screen').classList.remove('hidden');
+}
+
+function closeEditProfile() {
+    document.getElementById('edit-profile-screen').classList.add('hidden');
+    openSettings();
+}
+window.openEditProfile = openEditProfile;
+window.closeEditProfile = closeEditProfile;
+window.uploadUserStory = uploadUserStory;
+window.viewOwnStory = viewOwnStory;
+window.comingSoon = comingSoon;
+
+function openProfile() {
+    document.getElementById('settings-profile-fullname').innerText = `${currentUser.name} ${currentUser.family}`;
+    document.getElementById('settings-profile-username').innerText = `@${currentUser.userId}`;
+    document.getElementById('settings-profile-id').innerText = `@${currentUser.userId}`;
+
+    const bioEl = document.getElementById('settings-profile-bio');
     if (currentUser.bio && currentUser.bio.trim()) {
         bioEl.innerText = currentUser.bio;
         bioEl.classList.remove('profile-bio-empty');
@@ -270,95 +343,11 @@ function openProfile() {
         bioEl.classList.add('profile-bio-empty');
     }
 
-    // Update avatar
-    renderProfileAvatar();
-    
-    // Update groups display
-    updateProfileGroups();
+    renderSettingsAvatar();
 
     hideMainSections();
     document.getElementById('profile-screen').classList.remove('hidden');
     setActiveNav('profile');
-}
-
-function renderProfileAvatar() {
-    const avatarEl = document.getElementById('profile-avatar-display');
-    if (currentUser.avatar) {
-        avatarEl.style.backgroundImage = `url('${currentUser.avatar}')`;
-        avatarEl.style.backgroundSize = 'cover';
-        avatarEl.style.backgroundPosition = 'center';
-        avatarEl.innerText = '';
-    } else {
-        avatarEl.style.backgroundImage = 'none';
-        avatarEl.innerText = (currentUser.name ? currentUser.name[0] : '؟').toUpperCase();
-    }
-}
-
-function updateProfileGroups() {
-    const groupsDisplay = document.getElementById('profile-groups-display');
-    groupsDisplay.innerHTML = '';
-    
-    // Get user's groups
-    const userGroups = Object.values(chats).filter(c => c.type === 'group' && c.members && c.members.includes(currentUser.userId));
-    
-    if (userGroups.length === 0) {
-        groupsDisplay.innerHTML = '<span style="color:#7f91a4; font-size:13px;">در گروهی عضو نیستید</span>';
-    } else {
-        userGroups.slice(0, 3).forEach(group => {
-            const groupAvatar = document.createElement('div');
-            groupAvatar.style.cssText = `
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                background: #17212b;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 14px;
-                color: #5288c1;
-                border: 1px solid #242f3d;
-                cursor: pointer;
-                title: ${group.name}
-            `;
-            groupAvatar.innerText = (group.name ? group.name[0] : 'G').toUpperCase();
-            groupsDisplay.appendChild(groupAvatar);
-        });
-    }
-}
-
-function openProfileMenu() {
-    const menuHTML = `
-        <div style="display:flex; flex-direction:column; gap:8px;">
-            <button class="modal-btn btn-secondary" onclick="switchMainSection('settings')" style="justify-content:flex-start; padding:11px 15px;">
-                <i class="fa fa-cog" style="margin-left:10px;"></i> تنظیمات
-            </button>
-            <button class="modal-btn btn-danger" onclick="logout()" style="justify-content:flex-start; padding:11px 15px;">
-                <i class="fa fa-sign-out-alt" style="margin-left:10px;"></i> خروج از حساب
-            </button>
-        </div>
-    `;
-    
-    const modal = document.getElementById('message-menu-modal');
-    modal.querySelector('.quick-reactions')?.remove();
-    modal.querySelector('#message-reactions-list')?.remove();
-    modal.querySelector('#message-menu-actions').innerHTML = menuHTML;
-    modal.classList.remove('hidden');
-}
-
-function toggleProfileMute() {
-    // This is for the user's own profile mute status (if needed)
-    alert('این قابلیت در حال توسعه است');
-}
-
-function makeProfileCall() {
-    alert('تماس در حال توسعه است');
-}
-
-function copyProfileId() {
-    const userId = `@${currentUser.userId}`;
-    navigator.clipboard.writeText(userId).then(() => {
-        alert('نام کاربری کپی شد: ' + userId);
-    });
 }
 
 function saveSettings() {
@@ -385,7 +374,7 @@ function saveSettings() {
         saveUsers('admin');
         persistSession();
         alert('اطلاعات مدیریت با موفقیت بروز شد!');
-        openSettings();
+        closeEditProfile();
         return;
     }
 
@@ -422,7 +411,7 @@ function saveSettings() {
     persistSession();
 
     alert('اطلاعات شما با موفقیت بروزرسانی شد!');
-    openSettings();
+    closeEditProfile();
 }
 
 let currentProfileTargetId = null;
@@ -605,13 +594,6 @@ window.copyContactProfileId = copyContactProfileId;
 window.contactProfileMessage = contactProfileMessage;
 window.contactProfileCall = contactProfileCall;
 window.toggleContactMute = toggleContactMute;
-window.openProfile = openProfile;
-window.renderProfileAvatar = renderProfileAvatar;
-window.updateProfileGroups = updateProfileGroups;
-window.openProfileMenu = openProfileMenu;
-window.toggleProfileMute = toggleProfileMute;
-window.makeProfileCall = makeProfileCall;
-window.copyProfileId = copyProfileId;
 
 /* هنگام لود اولیه‌ی صفحه، اگر کاربر قبلاً وارد شده، به‌جای صفحه‌ی ورود مستقیم به چت‌ها می‌رویم.
    کمی تأخیر می‌دهیم تا لیستنرهای دیتابیس در core.js اولین دیتای users را بگیرند. */
