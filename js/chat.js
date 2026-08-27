@@ -2,6 +2,7 @@
    chat.js
    لیست گفتگوها، ارسال/نمایش پیام، ری‌اکشن، پاسخ،
    حذف، فوروارد، بلاک کاربر و مدیریت تصویر گفتگو
+   وابسته به: core.js
    ========================================================= */
 
 function switchTab(tab, element) {
@@ -28,7 +29,7 @@ function getAllChatsList() {
     hasConvWith.forEach(uId => {
         const u = users[uId];
         if (u && !list.find(c => c.id.toLowerCase() === uId)) {
-            list.push({ id: uId, title: `${u.name} ${u.family}`, type: 'direct', isVerified: u.isVerified || false, avatar: u.avatar });
+            list.push({ id: uId, title: `${u.name} ${u.family}`, type: 'direct', isVerified: false, avatar: u.avatar });
         }
     });
     return list;
@@ -122,7 +123,6 @@ function openChatOptionsMenu() {
             const isBlockedByMe = myBlockedList.includes(chatId);
 
             list.innerHTML += `<button class="modal-btn ${isBlockedByMe ? 'btn-secondary' : 'btn-danger'}" onclick="toggleBlockUser('${chatId}')"><i class="fa fa-ban"></i> ${isBlockedByMe ? 'آن‌بلاک کردن کاربر' : 'بلاک کردن کاربر'}</button>`;
-            list.innerHTML += `<button class="modal-btn btn-secondary" onclick="closeChatOptionsMenu(); openProfileUser('${chatId}')"><i class="fa fa-user"></i> مشاهده پروفایل</button>`;
             list.innerHTML += `<button class="modal-btn btn-danger" onclick="closeChatOptionsMenu(); openDeleteChatModal();"><i class="fa fa-trash"></i> حذف کامل پیوی</button>`;
         }
     }
@@ -165,30 +165,6 @@ function openChat(chatId, title, type, isVerified) {
     if (replyAlerts[myId]) {
         delete replyAlerts[myId][chatId.toLowerCase()];
         localStorage.setItem('app_reply_alerts_v6', JSON.stringify(replyAlerts));
-    }
-
-    let needsUpdate = false;
-    
-    if (currentChat.type === 'direct' || currentChat.type === 'group') {
-        messages.forEach(msg => {
-            if (msg.chatId && msg.sender) {
-                const chatIdLower = msg.chatId.toLowerCase();
-                const senderLower = msg.sender.toLowerCase();
-                
-                if (chatIdLower === myId && senderLower === chatId.toLowerCase() && msg.status === 'delivered') {
-                    msg.status = 'read';
-                    needsUpdate = true;
-                }
-                if (currentChat.type === 'group' && chatIdLower === chatId.toLowerCase() && senderLower !== myId && msg.status === 'delivered') {
-                    msg.status = 'read';
-                    needsUpdate = true;
-                }
-            }
-        });
-        
-        if (needsUpdate) {
-            saveMessages();
-        }
     }
 
     const verifiedHtml = isVerified ? ' <i class="fa-solid fa-circle-check verified-badge"></i>' : '';
@@ -256,6 +232,7 @@ function handleVoiceButtonClick() {
     startVoiceRecording();
 }
 
+/* ---------- انتخاب فایل از گالری: فقط عکس ---------- */
 function handleChatMediaSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -292,14 +269,6 @@ function removePendingVoice() {
     document.getElementById('voice-preview-bar').classList.add('hidden');
     const audioEl = document.getElementById('voice-preview-audio');
     if (audioEl) audioEl.src = '';
-}
-
-function formatRecordTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    const minStr = String(mins).padStart(2, '0');
-    const secStr = String(secs).padStart(2, '0');
-    return `${minStr}:${secStr}`;
 }
 
 async function startVoiceRecording() {
@@ -615,7 +584,7 @@ function sendMessage() {
         return;
     }
 
-    const newMsg = {
+    messages.push({
         id: Date.now(),
         sender: currentUser.userId,
         chatId: currentChat.id,
@@ -627,10 +596,8 @@ function sendMessage() {
         forwardFrom: null,
         reactions: {},
         deletedFor: [],
-        isEdited: false,
-        status: 'sent'
-    };
-    messages.push(newMsg);
+        isEdited: false
+    });
 
     if (replyingToMessageId) {
         const parentMsg = messages.find(m => m.id === replyingToMessageId);
@@ -663,10 +630,6 @@ function sendMessage() {
     removePendingVideo();
     removePendingVoice();
     renderMessages();
-
-    setTimeout(() => {
-        updateMessageStatus(newMsg.id, 'delivered');
-    }, 2000);
 }
 
 function renderMessages(unreadStartIndex = -1) {
@@ -706,8 +669,7 @@ function renderMessages(unreadStartIndex = -1) {
                 } else {
                     const senderObj = users[senderId] || { name: 'کاربر' };
                     const senderMsgCount = chatMsgs.filter(m2 => (m2.sender||'').toLowerCase() === senderId).length;
-                    const verifiedBadge = senderObj.isVerified ? ' <i class="fa-solid fa-circle-check verified-badge" style="font-size:11px;"></i>' : '';
-                    senderNameHtml = `<div class="sender-name" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${senderObj.name} ${verifiedBadge} <span style="font-size:10px;color:#7f91a4;font-weight:normal;">${senderMsgCount} پیام</span></div>`;
+                    senderNameHtml = `<div class="sender-name" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${senderObj.name} <span style="font-size:10px;color:#7f91a4;font-weight:normal;">${senderMsgCount} پیام</span></div>`;
                     avatarHtml = senderObj.avatar
                         ? `<img src="${senderObj.avatar}" class="msg-avatar-small" onclick="event.stopPropagation(); goToUserChat('${senderId}')">`
                         : `<div class="msg-avatar-small-placeholder" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${(senderObj.name || '؟').charAt(0)}</div>`;
@@ -741,13 +703,7 @@ function renderMessages(unreadStartIndex = -1) {
 
         let voiceHtml = '';
         if (msg.voice) {
-            voiceHtml = `
-                <div class="voice-message-button" id="voice-btn-${msg.id}" onclick="event.stopPropagation(); playVoiceMessage('${msg.id}')">
-                    <i class="fa fa-play voice-play-icon"></i>
-                    <span class="voice-duration" id="voice-duration-${msg.id}">۰:۰۰</span>
-                </div>
-                <audio id="audio-${msg.id}" src="${msg.voice}" style="display:none;"></audio>
-            `;
+            voiceHtml = `<audio src="${msg.voice}" class="message-voice" controls onclick="event.stopPropagation();"></audio>`;
         }
 
         let editedHtml = msg.isEdited ? '<span class="edited-tag">(ویرایش شده)</span>' : '';
@@ -762,24 +718,6 @@ function renderMessages(unreadStartIndex = -1) {
         }
         reactionsHtml += '</div>';
 
-        let statusHtml = '';
-        if (isMyMsg && currentChat.type !== 'saved' && currentChat.type !== 'channel') {
-            if (msg.status === 'sent') {
-                statusHtml = `<span class="msg-status sent"><i class="fa fa-check"></i></span>`;
-            } else if (msg.status === 'delivered') {
-                statusHtml = `<span class="msg-status delivered"><i class="fa fa-check-double"></i></span>`;
-            } else if (msg.status === 'read') {
-                statusHtml = `<span class="msg-status read"><i class="fa fa-check-double"></i></span>`;
-            } else {
-                statusHtml = `<span class="msg-status sent"><i class="fa fa-check"></i></span>`;
-            }
-        }
-
-        const msgTime = new Date(msg.id).toLocaleTimeString('fa-IR', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-
         msgDiv.innerHTML = `
             ${forwardHeaderHtml}
             ${senderNameHtml}
@@ -789,10 +727,6 @@ function renderMessages(unreadStartIndex = -1) {
             ${voiceHtml}
             ${formattedText ? `<div>${formattedText} ${editedHtml}</div>` : ''}
             ${reactionsHtml}
-            <div class="msg-footer">
-                <span class="msg-time">${msgTime}</span>
-                ${statusHtml}
-            </div>
         `;
 
         if (avatarHtml) {
@@ -808,20 +742,17 @@ function renderMessages(unreadStartIndex = -1) {
     container.scrollTop = container.scrollHeight;
 }
 
-// ===== تابع جدید برای رفتن به پروفایل از روی نام فرستنده =====
 function goToUserChat(senderIdRaw) {
     const senderId = (senderIdRaw || '').toLowerCase();
-    if (!senderId || senderId === currentUser.userId.toLowerCase()) {
-        openProfile();
-        return;
-    }
+    if (!senderId || senderId === currentUser.userId.toLowerCase()) return;
 
     if (senderId === 'admin') {
-        openProfileUser('admin');
+        openChat('admin', 'پشتیبانی مرکزی', 'direct', true);
         return;
     }
-    
-    openProfileUser(senderId);
+    const u = users[senderId];
+    if (!u) return;
+    openChat(u.userId, `${u.name} ${u.family || ''}`.trim(), 'direct', false);
 }
 
 function startEditMessage(msgId, text) {
@@ -943,8 +874,7 @@ function executeForward(targetChatId) {
         forwardFrom: sourceTitle,
         reactions: {},
         deletedFor: [],
-        isEdited: false,
-        status: 'sent'
+        isEdited: false
     });
 
     const targetChat = getAllChatsList().find(c => c.id.toLowerCase() === targetChatId.toLowerCase());
@@ -1006,13 +936,8 @@ function cancelReply() {
     document.getElementById('message-input').value = '';
 }
 
-function copyCurrentChatId() {
-    if (!currentChat) return;
-    if (currentChat.type !== 'direct') return;
-
-    const userId = currentChat.id;
-    const textToCopy = '@' + userId;
-
+/* کپی کردن یک متن در کلیپ‌بورد همراه با نمایش یک پیام کوچک (toast) */
+function copyTextWithToast(textToCopy) {
     const toast = document.createElement('div');
     toast.textContent = textToCopy + ' کپی شد';
     toast.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#5288c1;color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;z-index:9999;opacity:1;transition:opacity 0.4s;pointer-events:none;';
@@ -1034,81 +959,23 @@ function copyCurrentChatId() {
     setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 1800);
 }
 
-function playVoiceMessage(msgId) {
-    const audioEl = document.getElementById(`audio-${msgId}`);
-    const buttonEl = document.getElementById(`voice-btn-${msgId}`);
-    
-    if (!audioEl || !buttonEl) return;
-    
-    document.querySelectorAll('audio').forEach(a => {
-        if (a.id !== `audio-${msgId}`) {
-            a.pause();
-            a.currentTime = 0;
-        }
-    });
-    
-    document.querySelectorAll('.voice-message-button').forEach(btn => {
-        if (btn.id !== `voice-btn-${msgId}`) {
-            btn.classList.remove('playing');
-            const icon = btn.querySelector('.voice-play-icon');
-            if (icon) icon.className = 'fa fa-play voice-play-icon';
-        }
-    });
-    
-    if (audioEl.paused) {
-        buttonEl.classList.add('playing');
-        const playIcon = buttonEl.querySelector('.voice-play-icon');
-        if (playIcon) playIcon.className = 'fa fa-pause voice-play-icon';
-        audioEl.play().catch(function(err) {
-            console.warn('Audio play failed:', err);
-            buttonEl.classList.remove('playing');
-            const icon = buttonEl.querySelector('.voice-play-icon');
-            if (icon) icon.className = 'fa fa-play voice-play-icon';
-        });
-    } else {
-        audioEl.pause();
-        buttonEl.classList.remove('playing');
-        const playIcon = buttonEl.querySelector('.voice-play-icon');
-        if (playIcon) playIcon.className = 'fa fa-play voice-play-icon';
-    }
-    
-    if (audioEl.duration > 0) {
-        updateVoiceDuration(msgId, audioEl.duration);
-    }
-    
-    audioEl.onended = function() {
-        buttonEl.classList.remove('playing');
-        const playIcon = buttonEl.querySelector('.voice-play-icon');
-        if (playIcon) playIcon.className = 'fa fa-play voice-play-icon';
-    };
-    
-    audioEl.ontimeupdate = function() {
-        const current = audioEl.currentTime;
-        const durationEl = document.getElementById(`voice-duration-${msgId}`);
-        if (durationEl) {
-            durationEl.textContent = formatVoiceDuration(current);
-        }
-    };
+function copyCurrentChatId() {
+    if (!currentChat) return;
+    if (currentChat.type !== 'direct') return;
+
+    copyTextWithToast('@' + currentChat.id);
 }
 
-function updateVoiceDuration(msgId, duration) {
-    const durationEl = document.getElementById(`voice-duration-${msgId}`);
-    if (durationEl) {
-        durationEl.textContent = formatVoiceDuration(duration);
-    }
-}
+/* کلیک روی نام/آواتار در هدر گفتگو: مثل تلگرام، در پیوی پروفایل طرف مقابل
+   (شامل بیوگرافی) باز می‌شود. برای گروه/کانال فعلاً کاری انجام نمی‌شود. */
+function openHeaderProfile() {
+    if (!currentChat) return;
+    if (currentChat.type !== 'direct') return;
 
-function formatVoiceDuration(seconds) {
-    if (!seconds || isNaN(seconds)) return '۰:۰۰';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    const minStr = String(mins).padStart(2, '0');
-    const secStr = String(secs).padStart(2, '0');
-    return `${minStr}:${secStr}`;
+    openContactProfile(currentChat.id);
 }
 
 window.switchTab = switchTab;
-window.playVoiceMessage = playVoiceMessage;
 window.openChatOptionsMenu = openChatOptionsMenu;
 window.cancelReply = cancelReply;
 window.removePendingImage = removePendingImage;
@@ -1131,6 +998,7 @@ window.closeDeleteModal = closeDeleteModal;
 window.closeImageViewer = closeImageViewer;
 window.openChat = openChat;
 window.copyCurrentChatId = copyCurrentChatId;
+window.openHeaderProfile = openHeaderProfile;
 window.toggleBlockUser = toggleBlockUser;
 window.openDeleteChatModal = openDeleteChatModal;
 window.viewFullImage = viewFullImage;
