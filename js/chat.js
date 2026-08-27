@@ -157,6 +157,19 @@ function openChat(chatId, title, type, isVerified) {
     localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
     db.ref('app_unread_v6').set(unreadCounts);
 
+    if (type === 'direct') {
+        const otherId = chatId.toLowerCase();
+        const meId = currentUser.userId.toLowerCase();
+        let seenChanged = false;
+        messages.forEach(m => {
+            if (m.sender.toLowerCase() === otherId && m.chatId.toLowerCase() === meId && !m.seen) {
+                m.seen = true;
+                seenChanged = true;
+            }
+        });
+        if (seenChanged) saveMessages();
+    }
+
     const myId = currentUser.userId.toLowerCase();
     if (reactionAlerts[myId]) {
         delete reactionAlerts[myId][chatId.toLowerCase()];
@@ -596,7 +609,8 @@ function sendMessage() {
         forwardFrom: null,
         reactions: {},
         deletedFor: [],
-        isEdited: false
+        isEdited: false,
+        seen: false
     });
 
     if (replyingToMessageId) {
@@ -701,16 +715,9 @@ function renderMessages(unreadStartIndex = -1) {
             videoHtml = `<video src="${msg.video}" class="message-video" controls onclick="event.stopPropagation();"></video>`;
         }
 
-        // ===== TELEGRAM STYLE VOICE MESSAGE BUTTON =====
         let voiceHtml = '';
         if (msg.voice) {
-            voiceHtml = `
-                <div class="voice-message-button" onclick="event.stopPropagation(); playVoiceMessage('${msg.id}', '${msg.voice}')">
-                    <i class="fa fa-play voice-play-icon"></i>
-                    <span class="voice-duration" id="voice-duration-${msg.id}">۰:۰۰</span>
-                </div>
-                <audio id="audio-${msg.id}" src="${msg.voice}" style="display:none;"></audio>
-            `;
+            voiceHtml = `<audio src="${msg.voice}" class="message-voice" controls onclick="event.stopPropagation();"></audio>`;
         }
 
         let editedHtml = msg.isEdited ? '<span class="edited-tag">(ویرایش شده)</span>' : '';
@@ -725,6 +732,17 @@ function renderMessages(unreadStartIndex = -1) {
         }
         reactionsHtml += '</div>';
 
+        let ticksHtml = '';
+        if (isMyMsg) {
+            if (currentChat.type === 'direct') {
+                ticksHtml = msg.seen
+                    ? '<div class="msg-ticks-row"><span class="msg-ticks seen"><i class="fa-solid fa-check-double"></i></span></div>'
+                    : '<div class="msg-ticks-row"><span class="msg-ticks"><i class="fa-solid fa-check"></i></span></div>';
+            } else if (currentChat.type === 'group' || currentChat.type === 'channel') {
+                ticksHtml = '<div class="msg-ticks-row"><span class="msg-ticks"><i class="fa-solid fa-check"></i></span></div>';
+            }
+        }
+
         msgDiv.innerHTML = `
             ${forwardHeaderHtml}
             ${senderNameHtml}
@@ -734,6 +752,7 @@ function renderMessages(unreadStartIndex = -1) {
             ${voiceHtml}
             ${formattedText ? `<div>${formattedText} ${editedHtml}</div>` : ''}
             ${reactionsHtml}
+            ${ticksHtml}
         `;
 
         if (avatarHtml) {
@@ -881,7 +900,8 @@ function executeForward(targetChatId) {
         forwardFrom: sourceTitle,
         reactions: {},
         deletedFor: [],
-        isEdited: false
+        isEdited: false,
+        seen: false
     });
 
     const targetChat = getAllChatsList().find(c => c.id.toLowerCase() === targetChatId.toLowerCase());
@@ -971,78 +991,7 @@ function copyCurrentChatId() {
     setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 1800);
 }
 
-// ===== VOICE MESSAGE PLAYER FUNCTIONS =====
-function playVoiceMessage(msgId, voiceSrc) {
-    const audioEl = document.getElementById(`audio-${msgId}`);
-    const buttonEl = document.querySelector(`[onclick*="playVoiceMessage('${msgId}'"]`).parentElement.querySelector('.voice-message-button');
-    
-    if (!audioEl) return;
-    
-    // Stop any other playing audio
-    document.querySelectorAll('audio').forEach(a => {
-        if (a.id !== `audio-${msgId}`) {
-            a.pause();
-            a.currentTime = 0;
-        }
-    });
-    
-    // Update button state
-    document.querySelectorAll('.voice-message-button').forEach(btn => {
-        btn.classList.remove('playing');
-        const icon = btn.querySelector('.voice-play-icon');
-        if (icon) icon.className = 'fa fa-play voice-play-icon';
-    });
-    
-    if (audioEl.paused) {
-        // Play the audio
-        buttonEl.classList.add('playing');
-        const playIcon = buttonEl.querySelector('.voice-play-icon');
-        if (playIcon) playIcon.className = 'fa fa-pause voice-play-icon';
-        audioEl.play();
-    } else {
-        // Pause the audio
-        audioEl.pause();
-    }
-    
-    // Update duration display
-    if (audioEl.duration > 0) {
-        updateVoiceDuration(msgId, audioEl.duration);
-    }
-    
-    // Handle end of playback
-    audioEl.onended = function() {
-        buttonEl.classList.remove('playing');
-        const playIcon = buttonEl.querySelector('.voice-play-icon');
-        if (playIcon) playIcon.className = 'fa fa-play voice-play-icon';
-    };
-    
-    // Update time display while playing
-    audioEl.ontimeupdate = function() {
-        const current = audioEl.currentTime;
-        const durationEl = document.getElementById(`voice-duration-${msgId}`);
-        if (durationEl) {
-            durationEl.textContent = formatVoiceDuration(current);
-        }
-    };
-}
-
-function updateVoiceDuration(msgId, duration) {
-    const durationEl = document.getElementById(`voice-duration-${msgId}`);
-    if (durationEl) {
-        durationEl.textContent = formatVoiceDuration(duration);
-    }
-}
-
-function formatVoiceDuration(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    const minStr = String(mins).padStart(2, '0');
-    const secStr = String(secs).padStart(2, '0');
-    return `${minStr}:${secStr}`;
-}
-
 window.switchTab = switchTab;
-window.playVoiceMessage = playVoiceMessage;
 window.openChatOptionsMenu = openChatOptionsMenu;
 window.cancelReply = cancelReply;
 window.removePendingImage = removePendingImage;
