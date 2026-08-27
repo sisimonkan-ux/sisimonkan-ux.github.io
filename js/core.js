@@ -261,6 +261,27 @@ function saveUsers(changedUserId, deletedUserId) {
     }
 }
 
+function showVpnWarning() {
+    const el = document.getElementById('vpn-warning-banner');
+    if (el) el.classList.remove('hidden');
+}
+
+function hideVpnWarning() {
+    const el = document.getElementById('vpn-warning-banner');
+    if (el) el.classList.add('hidden');
+}
+
+/* مانیتور دائمی وضعیت اتصال به سرور: هر وقت اتصال قطع شود (مثلاً به‌خاطر
+   خاموش بودن فیلترشکن)، بنر بالای صفحه نمایش داده می‌شود و به‌محض وصل شدن
+   دوباره، به‌صورت خودکار مخفی می‌شود. */
+db.ref('.info/connected').on('value', function (snapshot) {
+    if (snapshot.val() === true) {
+        hideVpnWarning();
+    } else {
+        showVpnWarning();
+    }
+});
+
 function setActiveNav(tab) {
     document.querySelectorAll('.bottom-nav-item').forEach(el => {
         el.classList.toggle('active', el.getAttribute('data-nav') === tab);

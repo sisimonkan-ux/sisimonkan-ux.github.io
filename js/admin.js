@@ -62,11 +62,11 @@ function closeAdminPanel() {
 }
 
 /* ---------- حذف اکانت توسط مدیریت ---------- */
-function adminDeleteUser(userId) {
+async function adminDeleteUser(userId) {
     const uid = userId.toLowerCase();
     if (!users[uid]) return;
 
-    if (!confirm(`آیا مطمئنید می‌خواهید اکانت @${userId} را برای همیشه حذف کنید؟ این عمل قابل بازگشت نیست.`)) return;
+    if (!await customConfirm(`آیا مطمئنید می‌خواهید اکانت @${userId} را برای همیشه حذف کنید؟ این عمل قابل بازگشت نیست.`)) return;
 
     delete users[uid];
     saveUsers(null, uid);
@@ -76,7 +76,7 @@ function adminDeleteUser(userId) {
 }
 
 /* ---------- تعلیق موقت اکانت توسط مدیریت (بر حسب روز) ---------- */
-function adminSuspendUser(userId) {
+async function adminSuspendUser(userId) {
     const uid = userId.toLowerCase();
     if (!users[uid]) return;
 
@@ -84,7 +84,7 @@ function adminSuspendUser(userId) {
     const days = select ? parseInt(select.value, 10) : 7;
     if (!days || days <= 0) return;
 
-    if (!confirm(`آیا مطمئنید می‌خواهید اکانت @${userId} را به مدت ${days} روز تعلیق کنید؟`)) return;
+    if (!await customConfirm(`آیا مطمئنید می‌خواهید اکانت @${userId} را به مدت ${days} روز تعلیق کنید؟`)) return;
 
     users[uid].suspendedUntil = Date.now() + days * 24 * 60 * 60 * 1000;
     saveUsers(uid);

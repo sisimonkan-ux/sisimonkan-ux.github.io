@@ -41,23 +41,23 @@ function completeRegister() {
     if (regBtn) { regBtn.disabled = true; regBtn.innerText = 'در حال بررسی اتصال...'; }
 
     /* بررسی می‌کنیم که آیا واقعاً به سرور دیتابیس وصل شدیم یا نه.
-       اگر فیلترشکن کاربر خاموش باشد، اتصال به فایربیس برقرار نمی‌شود و
-       اکانتی که بالا ساختیم فقط به‌صورت محلی/موقت باقی می‌ماند و هرگز
-       واقعاً روی سرور ذخیره نمی‌شود؛ در این حالت اکانت را حذف و به کاربر اطلاع می‌دهیم. */
+       اگر فیلترشکن کاربر خاموش باشد، دیگر اکانت را حذف نمی‌کنیم؛ فقط یک
+       بنر هشدار بالای صفحه نشان می‌دهیم تا کاربر فیلترشکن خود را روشن کند.
+       اطلاعات به‌صورت محلی ذخیره شده و همچنان تلاش برای ارسال به سرور انجام می‌شود. */
     verifyDatabaseConnection(function(isConnected) {
         if (regBtn) { regBtn.disabled = false; regBtn.innerText = 'ثبت نام'; }
 
         if (isConnected) {
+            hideVpnWarning();
             alert('ثبت‌نام با موفقیت انجام شد! حالا وارد شوید.');
-            document.getElementById('login-username').value = tempAuth.username;
-            document.getElementById('login-password').value = tempAuth.password;
-            switchToLogin();
         } else {
-            delete users[userId];
-            localStorage.setItem('app_users_v6', JSON.stringify(users));
-            db.ref('app_users_v6/' + userId).remove();
-            alert('⚠️ ثبت‌نام شما ذخیره نشد!\nبه‌نظر می‌رسد فیلترشکن شما خاموش است و اتصال به سرور برقرار نشد.\nلطفاً فیلترشکن خود را روشن کنید و دوباره ثبت‌نام کنید.');
+            showVpnWarning();
+            db.ref('app_users_v6/' + userId).set(users[userId]).catch(function () {});
         }
+
+        document.getElementById('login-username').value = tempAuth.username;
+        document.getElementById('login-password').value = tempAuth.password;
+        switchToLogin();
     });
 }
 
@@ -186,8 +186,8 @@ function restoreSession() {
     }
 }
 
-function logout() {
-    if (confirm("آیا می‌خواهید از حساب خود خارج شوید؟")) {
+async function logout() {
+    if (await customConfirm("آیا می‌خواهید از حساب خود خارج شوید؟")) {
         currentUser = null;
         localStorage.removeItem('app_current_session_v6');
         hideMainSections();
