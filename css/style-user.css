@@ -85,6 +85,7 @@ html, body {
 .unread-separator span { background: #182533; padding: 2px 10px; font-size: 11px; color: #e53935; border-radius: 10px; border: 1px solid #e53935; position: relative; z-index: 1; }
 .reaction-badge { background: #e53935; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; }
 .reply-badge { color: #5288c1; font-size: 13px; }
+.muted-chat-icon { color: #7f91a4; font-size: 13px; }
 .verified-badge { color: #2AABEE; font-size: 13px; margin-right: 4px; }
 
 /* Chat Area */
@@ -294,6 +295,32 @@ html, body {
 .settings-group input, .settings-group textarea { width: 100%; padding: 9px 12px; background: #0e1621; border: 1px solid #242f3d; border-radius: 6px; color: #fff; outline: none; font-size: 13px; font-family: inherit; resize: vertical; }
 .profile-bio-text { font-size: 13px; color: #dce4ec; line-height: 1.6; text-align: right; white-space: pre-wrap; word-break: break-word; }
 .profile-bio-empty { color: #7f91a4; font-style: italic; }
+/* برای متن‌هایی مثل @Mostafa: چون صفحه RTL است، بدون این تنظیم مرورگر کاراکتر @
+   را طبق جهت پاراگراف (راست‌به‌چپ) می‌چیند و به‌صورت معکوس "Mostafa@" نمایش داده
+   می‌شد. با ست‌کردن جهت خود همین المان روی ltr (و راست‌چین نگه‌داشتنش با text-align)
+   متن هم مثل تلگرام همیشه به‌شکل صحیح "@Mostafa" نمایش داده می‌شود. */
+.user-id-text { direction: ltr; unicode-bidi: plaintext; text-align: right; }
+
+/* ---------- کارت پروفایل (خود کاربر و مخاطب) به سبک تلگرام ---------- */
+.profile-avatar-lg { width: 88px !important; height: 88px !important; font-size: 32px !important; }
+
+.own-profile-header { display:flex; flex-direction:column; align-items:center; margin-bottom:16px; text-align:center; }
+.own-profile-name { margin-top:10px; margin-bottom:0; font-size:17px; }
+
+.contact-profile-box { padding-top:22px; }
+.contact-profile-avatar-wrap { display:inline-block; margin-bottom:10px; }
+.contact-profile-name { margin-bottom:4px; font-size:18px; }
+
+.contact-profile-actions { display:flex; justify-content:center; gap:14px; margin:14px 0 18px; }
+.contact-action-btn { display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; flex:1; max-width:80px; }
+.contact-action-icon { width:46px; height:46px; border-radius:50%; background:#17212b; color:#5288c1; display:flex; align-items:center; justify-content:center; font-size:17px; border:1px solid #242f3d; }
+.contact-action-btn span { font-size:11px; color:#c7d3de; }
+.contact-action-btn.muted .contact-action-icon { color:#e5824b; }
+
+.contact-profile-card { text-align:right; background:#17212b; border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+.contact-profile-field-label { font-size:11px; color:#5288c1; margin:2px 0 12px; }
+.contact-profile-field-label:last-child { margin-bottom:0; }
+.contact-profile-divider { height:1px; background:rgba(255,255,255,0.06); margin-bottom:12px; }
 
 .btn-save-settings { width: 100%; padding: 11px; background: #5288c1; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 13px; }
 .btn-admin-menu { width: 100%; padding: 11px; background: #e5824b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
