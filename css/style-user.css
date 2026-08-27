@@ -284,6 +284,7 @@ html, body {
 .settings-group h4 { color: #5288c1; margin-bottom: 12px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
 .settings-group label { display: block; font-size: 11px; color: #7f91a4; margin-top: 10px; margin-bottom: 4px; }
 .settings-group input { width: 100%; padding: 9px 12px; background: #0e1621; border: 1px solid #242f3d; border-radius: 6px; color: #fff; outline: none; font-size: 13px; }
+.settings-group textarea { width: 100%; padding: 9px 12px; background: #0e1621; border: 1px solid #242f3d; border-radius: 6px; color: #fff; outline: none; font-size: 13px; resize: vertical; font-family: Tahoma, sans-serif; }
 
 .btn-save-settings { width: 100%; padding: 11px; background: #5288c1; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 13px; }
 .btn-admin-menu { width: 100%; padding: 11px; background: #e5824b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
@@ -305,6 +306,11 @@ html, body {
 #image-viewer-modal { background: rgba(0, 0, 0, 0.9); flex-direction: column; justify-content: center; align-items: center; }
 #image-viewer-modal img { max-width: 95vw; max-height: 85vh; object-fit: contain; border-radius: 8px; }
 .close-img-viewer { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; }
+
+.profile-view-avatar-wrapper { display: flex; justify-content: center; }
+.profile-view-avatar-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; }
+.profile-view-avatar-placeholder { width: 90px; height: 90px; border-radius: 50%; background: #5288c1; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #fff; }
+.profile-view-bio-box { background: #17212b; border-radius: 8px; padding: 10px; margin: 12px 0; text-align: right; font-size: 13px; color: #dce6f0; border: 1px solid #0e1621; line-height: 1.6; }
 
 .reactions-info-box {
     background: #17212b;
