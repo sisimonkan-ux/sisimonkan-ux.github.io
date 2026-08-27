@@ -212,7 +212,6 @@ function hideMainSections() {
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('settings-screen').classList.add('hidden');
     document.getElementById('profile-screen').classList.add('hidden');
-    document.getElementById('edit-profile-screen').classList.add('hidden');
 }
 
 function switchMainSection(tab) {
