@@ -330,7 +330,7 @@ function saveSettings() {
         if (m.chatId.toLowerCase() === `saved_${oldUserId}`) m.chatId = `saved_${newUserId}`;
     });
 
-    saveUsers(newUserId, oldUserId);
+    saveUsers(newUserId, newUserId !== oldUserId ? oldUserId : null);
     saveMessages();
     persistSession();
 
