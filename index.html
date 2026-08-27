@@ -15,31 +15,37 @@
 
     <!-- Auth Screen -->
     <div id="auth-screen" class="screen">
+        <div class="auth-logo-wrap">
+            <div class="auth-logo-badge"><i class="fa fa-paper-plane"></i></div>
+            <div class="auth-logo-title">چت</div>
+            <div class="auth-logo-sub">پیام‌رسانی سریع، ساده و امن</div>
+        </div>
+
         <div class="auth-card">
             <h2 id="auth-title">ورود به حساب</h2>
             <br>
             <div id="login-form">
-                <input type="text" id="login-username" placeholder="نام کاربری">
-                <input type="password" id="login-password" placeholder="رمز عبور">
-                <button onclick="login()">ورود</button>
-                <br><br>
-                <p style="font-size: 12px;"><a href="#" style="color:#6ab0ff;" onclick="switchToRegister()">ثبت نام جدید</a></p>
+                <div class="auth-field"><i class="fa fa-user"></i><input type="text" id="login-username" placeholder="نام کاربری"></div>
+                <div class="auth-field"><i class="fa fa-lock"></i><input type="password" id="login-password" placeholder="رمز عبور"></div>
+                <button onclick="login()"><i class="fa fa-sign-in-alt"></i> ورود</button>
+                <p class="auth-switch-link">حساب ندارید؟ <a href="#" onclick="switchToRegister()">ثبت نام جدید</a></p>
             </div>
             <div id="step-1" class="hidden">
-                <p style="font-size:12px; color:#ffb84d; background:rgba(255,184,77,0.1); border:1px solid #ffb84d; border-radius:6px; padding:8px; margin-bottom:10px; line-height:1.8;">
-                    ⚠️ لطفاً قبل از ثبت‌نام، فیلترشکن (VPN) خود را روشن کنید و تا پایان ثبت‌نام خاموش نکنید؛ در غیر این صورت حساب شما ممکن است برای بقیه ساخته نشود.
+                <div class="auth-step-dots"><span class="active"></span><span></span></div>
+                <p class="auth-vpn-note">
+                    ⚠️ لطفاً قبل از ثبت‌نام، فیلترشکن (VPN) خود را روشن کنید و تا پایان ثبت‌نام خاموش نکنید؛ در غیر این صورت حساب شما ممکن است ساخته نشود.
                 </p>
-                <input type="text" id="reg-username" placeholder="نام کاربری جدید">
-                <input type="password" id="reg-password" placeholder="رمز عبور جدید">
-                <button onclick="nextStep()">ادامه</button>
-                <br><br>
-                <p style="font-size: 12px;">حساب دارید؟ <a href="#" style="color:#6ab0ff;" onclick="switchToLogin()">ورود</a></p>
+                <div class="auth-field"><i class="fa fa-user"></i><input type="text" id="reg-username" placeholder="نام کاربری جدید"></div>
+                <div class="auth-field"><i class="fa fa-lock"></i><input type="password" id="reg-password" placeholder="رمز عبور جدید"></div>
+                <button onclick="nextStep()">ادامه <i class="fa fa-arrow-left"></i></button>
+                <p class="auth-switch-link">حساب دارید؟ <a href="#" onclick="switchToLogin()">ورود</a></p>
             </div>
             <div id="step-2" class="hidden">
-                <input type="text" id="reg-name" placeholder="نام">
-                <input type="text" id="reg-family" placeholder="نام خانوادگی">
-                <input type="text" id="reg-userid" placeholder="آیدی اختصاصی (بدون @)">
-                <button onclick="completeRegister()">تکمیل ثبت نام</button>
+                <div class="auth-step-dots"><span></span><span class="active"></span></div>
+                <div class="auth-field"><i class="fa fa-id-badge"></i><input type="text" id="reg-name" placeholder="نام"></div>
+                <div class="auth-field"><i class="fa fa-id-badge"></i><input type="text" id="reg-family" placeholder="نام خانوادگی"></div>
+                <div class="auth-field"><i class="fa fa-at"></i><input type="text" id="reg-userid" placeholder="آیدی اختصاصی (بدون @)"></div>
+                <button onclick="completeRegister()"><i class="fa fa-check"></i> تکمیل ثبت نام</button>
             </div>
         </div>
     </div>
@@ -92,25 +98,71 @@
         </div>
 
         <div class="settings-container">
+            <div class="settings-account-row" onclick="openProfile()">
+                <div id="settings-menu-avatar-box">
+                    <div class="profile-avatar" id="settings-menu-avatar-icon">؟</div>
+                </div>
+                <div class="settings-account-texts">
+                    <h4 id="settings-menu-fullname">نام و خانوادگی</h4>
+                    <p id="settings-menu-userid">@username</p>
+                </div>
+                <i class="fa fa-chevron-left" style="color:#4a5a6b;"></i>
+            </div>
+
             <button id="btn-admin-panel" class="btn-admin-menu hidden" onclick="openAdminPanel()">
                 <i class="fa fa-user-shield"></i> ورود به پنل مدیریت
             </button>
 
-            <div class="settings-group">
-                <h4><i class="fa fa-user-lock"></i> اطلاعات حساب و حریم خصوصی</h4>
-                <label>نام</label>
-                <input type="text" id="setting-name">
-                <label>نام خانوادگی</label>
-                <input type="text" id="setting-family">
-                <label>آیدی اختصاصی (بدون @)</label>
-                <input type="text" id="setting-userid">
-                <label>نام کاربری ورود (Username)</label>
-                <input type="text" id="setting-username">
-                <label>رمز عبور (Password)</label>
-                <input type="password" id="setting-password">
-                <label>بیوگرافی</label>
-                <textarea id="setting-bio" rows="3" maxlength="150" placeholder="چند خط درباره‌ی خودتان بنویسید..."></textarea>
-                <button class="btn-save-settings" onclick="saveSettings()">ذخیره تغییرات</button>
+            <div class="settings-menu-list">
+                <div class="settings-menu-item" onclick="openEditProfile()">
+                    <div class="settings-menu-icon" style="background:#5288c1;"><i class="fa fa-user"></i></div>
+                    <div class="settings-menu-texts">
+                        <div class="settings-menu-title">حساب کاربری</div>
+                        <div class="settings-menu-sub">نام، آیدی، بیوگرافی</div>
+                    </div>
+                    <i class="fa fa-chevron-left"></i>
+                </div>
+                <div class="settings-menu-item" onclick="comingSoon('اعلان‌ها')">
+                    <div class="settings-menu-icon" style="background:#e5824b;"><i class="fa fa-bell"></i></div>
+                    <div class="settings-menu-texts">
+                        <div class="settings-menu-title">اعلان‌ها</div>
+                        <div class="settings-menu-sub">صداها، تم، انیمیشن‌ها</div>
+                    </div>
+                    <i class="fa fa-chevron-left"></i>
+                </div>
+                <div class="settings-menu-item" onclick="comingSoon('حریم خصوصی و امنیت')">
+                    <div class="settings-menu-icon" style="background:#4caf50;"><i class="fa fa-key"></i></div>
+                    <div class="settings-menu-texts">
+                        <div class="settings-menu-title">حریم خصوصی و امنیت</div>
+                        <div class="settings-menu-sub">مسدودشده‌ها، دو مرحله‌ای</div>
+                    </div>
+                    <i class="fa fa-chevron-left"></i>
+                </div>
+                <div class="settings-menu-item" onclick="comingSoon('داده‌ها و ذخیره‌سازی')">
+                    <div class="settings-menu-icon" style="background:#2b8fd6;"><i class="fa fa-database"></i></div>
+                    <div class="settings-menu-texts">
+                        <div class="settings-menu-title">داده‌ها و ذخیره‌سازی</div>
+                        <div class="settings-menu-sub">تنظیمات دانلود رسانه</div>
+                    </div>
+                    <i class="fa fa-chevron-left"></i>
+                </div>
+                <div class="settings-menu-item" onclick="comingSoon('زبان')">
+                    <div class="settings-menu-icon" style="background:#a06be0;"><i class="fa fa-globe"></i></div>
+                    <div class="settings-menu-texts">
+                        <div class="settings-menu-title">زبان</div>
+                        <div class="settings-menu-sub">فارسی</div>
+                    </div>
+                    <i class="fa fa-chevron-left"></i>
+                </div>
+            </div>
+
+            <div class="settings-menu-list">
+                <div class="settings-menu-item danger" onclick="logout()">
+                    <div class="settings-menu-icon" style="background:#e53935;"><i class="fa fa-sign-out-alt"></i></div>
+                    <div class="settings-menu-texts">
+                        <div class="settings-menu-title">خروج از حساب</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -130,70 +182,112 @@
         </div>
     </div>
 
+    <!-- Edit Profile Screen -->
+    <div id="edit-profile-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-title">
+                <button class="btn-back" onclick="closeEditProfile()"><i class="fa fa-arrow-right"></i></button>
+                <h3>ویرایش اطلاعات</h3>
+            </div>
+        </div>
+
+        <div class="settings-container">
+            <div class="edit-avatar-center">
+                <div class="profile-avatar-wrapper" onclick="document.getElementById('user-avatar-file-input-2').click()">
+                    <div id="edit-avatar-box">
+                        <div class="profile-avatar profile-avatar-lg" id="edit-avatar-icon">؟</div>
+                    </div>
+                    <div class="avatar-edit-overlay"><i class="fa fa-camera"></i></div>
+                </div>
+                <input type="file" id="user-avatar-file-input-2" accept="image/*" class="hidden" onchange="uploadUserAvatar(event)">
+            </div>
+
+            <div class="edit-field-card">
+                <div class="edit-field-row">
+                    <label>نام</label>
+                    <input type="text" id="setting-name">
+                </div>
+                <div class="edit-field-row">
+                    <label>نام خانوادگی</label>
+                    <input type="text" id="setting-family">
+                </div>
+            </div>
+            <div class="edit-field-hint">نام و نام خانوادگی به دیگران در گفتگوها و لیست مخاطبین نمایش داده می‌شود.</div>
+
+            <div class="edit-field-card">
+                <div class="edit-field-row">
+                    <label>بیوگرافی</label>
+                    <textarea id="setting-bio" rows="3" maxlength="150" placeholder="چند خط درباره‌ی خودتان بنویسید..."></textarea>
+                </div>
+            </div>
+
+            <div class="edit-field-card">
+                <div class="edit-field-row">
+                    <label><i class="fa fa-at" style="margin-left:4px;"></i>آیدی اختصاصی</label>
+                    <input type="text" id="setting-userid">
+                </div>
+                <div class="edit-field-row">
+                    <label><i class="fa fa-user" style="margin-left:4px;"></i>نام کاربری ورود</label>
+                    <input type="text" id="setting-username">
+                </div>
+                <div class="edit-field-row">
+                    <label><i class="fa fa-lock" style="margin-left:4px;"></i>رمز عبور</label>
+                    <input type="password" id="setting-password">
+                </div>
+            </div>
+            <div class="edit-field-hint">از آیدی اختصاصی برای ورود دیگران به گفتگو با شما استفاده می‌شود؛ نام کاربری و رمز عبور برای ورود به حساب لازم است.</div>
+
+            <button class="btn-save-settings" onclick="saveSettings()">ذخیره تغییرات</button>
+        </div>
+    </div>
+
     <!-- Profile Screen -->
     <div id="profile-screen" class="screen hidden">
         <div class="header">
             <div class="header-title">
                 <button class="btn-back" onclick="switchMainSection('chats')"><i class="fa fa-arrow-right"></i></button>
-            </div>
-            <div class="header-actions">
-                <button class="btn-more-options" onclick="openProfileMenu()"><i class="fa fa-ellipsis-v"></i></button>
+                <h3>پروفایل</h3>
             </div>
         </div>
 
-        <div class="profile-content">
-            <!-- Profile Header Section -->
-            <div class="profile-header-section">
-                <div class="profile-avatar-wrapper-lg" onclick="document.getElementById('user-avatar-file-input').click()">
-                    <div id="profile-avatar-display" class="profile-avatar profile-avatar-xl">؟</div>
-                    <div class="avatar-edit-overlay-lg"><i class="fa fa-camera"></i></div>
+        <div class="settings-container">
+            <div class="own-profile-header">
+                <div class="story-ring-wrap">
+                    <div id="own-story-ring" class="story-ring no-story" onclick="viewOwnStory()"></div>
+                    <div class="profile-avatar-wrapper" onclick="viewOwnStory()">
+                        <div id="settings-avatar-box">
+                            <div class="profile-avatar profile-avatar-lg" id="settings-avatar-icon">؟</div>
+                        </div>
+                    </div>
+                    <div class="story-add-btn" onclick="event.stopPropagation(); document.getElementById('user-story-file-input').click()"><i class="fa fa-plus"></i></div>
                 </div>
                 <input type="file" id="user-avatar-file-input" accept="image/*" class="hidden" onchange="uploadUserAvatar(event)">
-                <h2 id="profile-fullname" class="profile-name-lg">نام و خانوادگی</h2>
-                <p id="profile-username-display" class="profile-username-text">آخرین بازدید به تازگی</p>
+                <input type="file" id="user-story-file-input" accept="image/*" class="hidden" onchange="uploadUserStory(event)">
+                <h3 id="settings-profile-fullname" class="own-profile-name">نام و خانوادگی</h3>
+                <p id="settings-profile-username" class="own-profile-username">@username</p>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="profile-actions-section">
-                <div class="profile-action-btn" onclick="switchMainSection('chats')">
-                    <div class="action-icon"><i class="fa fa-comment"></i></div>
-                    <span>پیام</span>
+            <div class="profile-quick-actions">
+                <div class="profile-quick-btn" onclick="document.getElementById('user-avatar-file-input').click()">
+                    <i class="fa fa-camera"></i><span>تنظیم عکس</span>
                 </div>
-                <div class="profile-action-btn" onclick="toggleProfileMute()">
-                    <div class="action-icon" id="profile-mute-icon"><i class="fa fa-bell-slash"></i></div>
-                    <span id="profile-mute-label">بی‌صدا کردن</span>
+                <div class="profile-quick-btn" onclick="openEditProfile()">
+                    <i class="fa fa-pen"></i><span>ویرایش اطلاعات</span>
                 </div>
-                <div class="profile-action-btn" onclick="makeProfileCall()">
-                    <div class="action-icon"><i class="fa fa-phone"></i></div>
-                    <span>تماس</span>
+                <div class="profile-quick-btn" onclick="openSettings()">
+                    <i class="fa fa-cog"></i><span>تنظیمات</span>
                 </div>
             </div>
 
-            <!-- Profile Info Cards -->
-            <div class="profile-info-cards">
-                <!-- Bio Card -->
-                <div class="profile-card-item">
-                    <p id="profile-bio" class="profile-bio-text">بیوگرافی ثبت نشده است</p>
-                    <div class="profile-card-label">بیوگرافی</div>
-                </div>
+            <div class="contact-profile-card">
+                <p id="settings-profile-bio" class="profile-bio-text" style="margin:0 0 2px;">بیوگرافی ثبت نشده است</p>
+                <div class="contact-profile-field-label">بیوگرافی</div>
 
-                <!-- Username Card -->
-                <div class="profile-card-item">
-                    <p id="profile-userid" class="user-id-text" style="cursor:pointer;" onclick="copyProfileId()">@username</p>
-                    <div class="profile-card-label">نام کاربری</div>
-                </div>
+                <div class="contact-profile-divider"></div>
 
-                <!-- Groups Card -->
-                <div class="profile-card-item">
-                    <div id="profile-groups-display" style="display:flex; gap:8px; align-items:center;">
-                        <!-- Groups will be added here -->
-                    </div>
-                    <div class="profile-card-label">گروه‌ها</div>
-                </div>
+                <p id="settings-profile-id" class="user-id-text" style="margin:0 0 2px;">@username</p>
+                <div class="contact-profile-field-label">آیدی</div>
             </div>
-
-            <!-- Edit Profile Button -->
-            <button class="btn-edit-profile" onclick="switchMainSection('settings')"><i class="fa fa-edit"></i> ویرایش پروفایل</button>
         </div>
 
         <div class="bottom-nav">
