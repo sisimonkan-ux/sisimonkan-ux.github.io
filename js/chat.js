@@ -2,7 +2,6 @@
    chat.js
    لیست گفتگوها، ارسال/نمایش پیام، ری‌اکشن، پاسخ،
    حذف، فوروارد، بلاک کاربر و مدیریت تصویر گفتگو
-   وابسته به: core.js
    ========================================================= */
 
 function switchTab(tab, element) {
@@ -29,7 +28,7 @@ function getAllChatsList() {
     hasConvWith.forEach(uId => {
         const u = users[uId];
         if (u && !list.find(c => c.id.toLowerCase() === uId)) {
-            list.push({ id: uId, title: `${u.name} ${u.family}`, type: 'direct', isVerified: !!u.verified, avatar: u.avatar });
+            list.push({ id: uId, title: `${u.name} ${u.family}`, type: 'direct', isVerified: u.isVerified || false, avatar: u.avatar });
         }
     });
     return list;
@@ -118,13 +117,12 @@ function openChatOptionsMenu() {
     const chatId = currentChat.id.toLowerCase();
 
     if (currentChat.type === 'direct' && chatId !== getSavedMessagesChatId()) {
-        list.innerHTML += `<button class="modal-btn btn-secondary" onclick="openUserProfileView()"><i class="fa fa-user"></i> مشاهده پروفایل</button>`;
-
         if (chatId !== 'admin') {
             const myBlockedList = blockedUsers[myId] || [];
             const isBlockedByMe = myBlockedList.includes(chatId);
 
             list.innerHTML += `<button class="modal-btn ${isBlockedByMe ? 'btn-secondary' : 'btn-danger'}" onclick="toggleBlockUser('${chatId}')"><i class="fa fa-ban"></i> ${isBlockedByMe ? 'آن‌بلاک کردن کاربر' : 'بلاک کردن کاربر'}</button>`;
+            list.innerHTML += `<button class="modal-btn btn-secondary" onclick="closeChatOptionsMenu(); openProfileUser('${chatId}')"><i class="fa fa-user"></i> مشاهده پروفایل</button>`;
             list.innerHTML += `<button class="modal-btn btn-danger" onclick="closeChatOptionsMenu(); openDeleteChatModal();"><i class="fa fa-trash"></i> حذف کامل پیوی</button>`;
         }
     }
@@ -140,58 +138,6 @@ function openChatOptionsMenu() {
 
 function closeChatOptionsMenu() {
     document.getElementById('chat-options-modal').classList.add('hidden');
-}
-
-/* ---------- مشاهده پروفایل طرف مقابل (عکس، بیوگرافی، آیدی) ---------- */
-function openUserProfileView() {
-    if (!currentChat) return;
-    const chatId = currentChat.id.toLowerCase();
-
-    let name, avatar, verified, bio, username;
-
-    if (chatId === 'admin') {
-        const adminUser = users['admin'] || {};
-        name = 'پشتیبانی مرکزی';
-        avatar = adminUser.avatar || null;
-        verified = true;
-        bio = adminUser.bio || '';
-        username = 'admin';
-    } else {
-        const u = users[chatId];
-        if (!u) return;
-        name = `${u.name} ${u.family}`;
-        avatar = u.avatar || null;
-        verified = !!u.verified;
-        bio = u.bio || '';
-        username = u.userId;
-    }
-
-    const verifiedHtml = verified ? ' <i class="fa-solid fa-circle-check verified-badge"></i>' : '';
-    document.getElementById('profile-view-fullname').innerHTML = name + verifiedHtml;
-    document.getElementById('profile-view-username').innerText = '@' + username;
-
-    const bioBox = document.getElementById('profile-view-bio-box');
-    const bioText = document.getElementById('profile-view-bio-text');
-    if (bio) {
-        bioText.innerText = bio;
-        bioBox.classList.remove('hidden');
-    } else {
-        bioBox.classList.add('hidden');
-    }
-
-    const avatarBox = document.getElementById('profile-view-avatar-box');
-    if (avatar) {
-        avatarBox.innerHTML = `<img src="${avatar}" class="profile-view-avatar-img">`;
-    } else {
-        avatarBox.innerHTML = `<div class="profile-view-avatar-placeholder">${(name || '؟').charAt(0)}</div>`;
-    }
-
-    closeChatOptionsMenu();
-    document.getElementById('user-profile-modal').classList.remove('hidden');
-}
-
-function closeUserProfileView() {
-    document.getElementById('user-profile-modal').classList.add('hidden');
 }
 
 function openChat(chatId, title, type, isVerified) {
@@ -219,6 +165,30 @@ function openChat(chatId, title, type, isVerified) {
     if (replyAlerts[myId]) {
         delete replyAlerts[myId][chatId.toLowerCase()];
         localStorage.setItem('app_reply_alerts_v6', JSON.stringify(replyAlerts));
+    }
+
+    let needsUpdate = false;
+    
+    if (currentChat.type === 'direct' || currentChat.type === 'group') {
+        messages.forEach(msg => {
+            if (msg.chatId && msg.sender) {
+                const chatIdLower = msg.chatId.toLowerCase();
+                const senderLower = msg.sender.toLowerCase();
+                
+                if (chatIdLower === myId && senderLower === chatId.toLowerCase() && msg.status === 'delivered') {
+                    msg.status = 'read';
+                    needsUpdate = true;
+                }
+                if (currentChat.type === 'group' && chatIdLower === chatId.toLowerCase() && senderLower !== myId && msg.status === 'delivered') {
+                    msg.status = 'read';
+                    needsUpdate = true;
+                }
+            }
+        });
+        
+        if (needsUpdate) {
+            saveMessages();
+        }
     }
 
     const verifiedHtml = isVerified ? ' <i class="fa-solid fa-circle-check verified-badge"></i>' : '';
@@ -286,7 +256,6 @@ function handleVoiceButtonClick() {
     startVoiceRecording();
 }
 
-/* ---------- انتخاب فایل از گالری: فقط عکس ---------- */
 function handleChatMediaSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -323,6 +292,14 @@ function removePendingVoice() {
     document.getElementById('voice-preview-bar').classList.add('hidden');
     const audioEl = document.getElementById('voice-preview-audio');
     if (audioEl) audioEl.src = '';
+}
+
+function formatRecordTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const minStr = String(mins).padStart(2, '0');
+    const secStr = String(secs).padStart(2, '0');
+    return `${minStr}:${secStr}`;
 }
 
 async function startVoiceRecording() {
@@ -638,7 +615,7 @@ function sendMessage() {
         return;
     }
 
-    messages.push({
+    const newMsg = {
         id: Date.now(),
         sender: currentUser.userId,
         chatId: currentChat.id,
@@ -650,8 +627,10 @@ function sendMessage() {
         forwardFrom: null,
         reactions: {},
         deletedFor: [],
-        isEdited: false
-    });
+        isEdited: false,
+        status: 'sent'
+    };
+    messages.push(newMsg);
 
     if (replyingToMessageId) {
         const parentMsg = messages.find(m => m.id === replyingToMessageId);
@@ -684,6 +663,10 @@ function sendMessage() {
     removePendingVideo();
     removePendingVoice();
     renderMessages();
+
+    setTimeout(() => {
+        updateMessageStatus(newMsg.id, 'delivered');
+    }, 2000);
 }
 
 function renderMessages(unreadStartIndex = -1) {
@@ -723,7 +706,8 @@ function renderMessages(unreadStartIndex = -1) {
                 } else {
                     const senderObj = users[senderId] || { name: 'کاربر' };
                     const senderMsgCount = chatMsgs.filter(m2 => (m2.sender||'').toLowerCase() === senderId).length;
-                    senderNameHtml = `<div class="sender-name" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${senderObj.name} <span style="font-size:10px;color:#7f91a4;font-weight:normal;">${senderMsgCount} پیام</span></div>`;
+                    const verifiedBadge = senderObj.isVerified ? ' <i class="fa-solid fa-circle-check verified-badge" style="font-size:11px;"></i>' : '';
+                    senderNameHtml = `<div class="sender-name" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${senderObj.name} ${verifiedBadge} <span style="font-size:10px;color:#7f91a4;font-weight:normal;">${senderMsgCount} پیام</span></div>`;
                     avatarHtml = senderObj.avatar
                         ? `<img src="${senderObj.avatar}" class="msg-avatar-small" onclick="event.stopPropagation(); goToUserChat('${senderId}')">`
                         : `<div class="msg-avatar-small-placeholder" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${(senderObj.name || '؟').charAt(0)}</div>`;
@@ -757,7 +741,13 @@ function renderMessages(unreadStartIndex = -1) {
 
         let voiceHtml = '';
         if (msg.voice) {
-            voiceHtml = `<audio src="${msg.voice}" class="message-voice" controls onclick="event.stopPropagation();"></audio>`;
+            voiceHtml = `
+                <div class="voice-message-button" id="voice-btn-${msg.id}" onclick="event.stopPropagation(); playVoiceMessage('${msg.id}')">
+                    <i class="fa fa-play voice-play-icon"></i>
+                    <span class="voice-duration" id="voice-duration-${msg.id}">۰:۰۰</span>
+                </div>
+                <audio id="audio-${msg.id}" src="${msg.voice}" style="display:none;"></audio>
+            `;
         }
 
         let editedHtml = msg.isEdited ? '<span class="edited-tag">(ویرایش شده)</span>' : '';
@@ -772,6 +762,24 @@ function renderMessages(unreadStartIndex = -1) {
         }
         reactionsHtml += '</div>';
 
+        let statusHtml = '';
+        if (isMyMsg && currentChat.type !== 'saved' && currentChat.type !== 'channel') {
+            if (msg.status === 'sent') {
+                statusHtml = `<span class="msg-status sent"><i class="fa fa-check"></i></span>`;
+            } else if (msg.status === 'delivered') {
+                statusHtml = `<span class="msg-status delivered"><i class="fa fa-check-double"></i></span>`;
+            } else if (msg.status === 'read') {
+                statusHtml = `<span class="msg-status read"><i class="fa fa-check-double"></i></span>`;
+            } else {
+                statusHtml = `<span class="msg-status sent"><i class="fa fa-check"></i></span>`;
+            }
+        }
+
+        const msgTime = new Date(msg.id).toLocaleTimeString('fa-IR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
         msgDiv.innerHTML = `
             ${forwardHeaderHtml}
             ${senderNameHtml}
@@ -781,6 +789,10 @@ function renderMessages(unreadStartIndex = -1) {
             ${voiceHtml}
             ${formattedText ? `<div>${formattedText} ${editedHtml}</div>` : ''}
             ${reactionsHtml}
+            <div class="msg-footer">
+                <span class="msg-time">${msgTime}</span>
+                ${statusHtml}
+            </div>
         `;
 
         if (avatarHtml) {
@@ -796,17 +808,20 @@ function renderMessages(unreadStartIndex = -1) {
     container.scrollTop = container.scrollHeight;
 }
 
+// ===== تابع جدید برای رفتن به پروفایل از روی نام فرستنده =====
 function goToUserChat(senderIdRaw) {
     const senderId = (senderIdRaw || '').toLowerCase();
-    if (!senderId || senderId === currentUser.userId.toLowerCase()) return;
-
-    if (senderId === 'admin') {
-        openChat('admin', 'پشتیبانی مرکزی', 'direct', true);
+    if (!senderId || senderId === currentUser.userId.toLowerCase()) {
+        openProfile();
         return;
     }
-    const u = users[senderId];
-    if (!u) return;
-    openChat(u.userId, `${u.name} ${u.family || ''}`.trim(), 'direct', false);
+
+    if (senderId === 'admin') {
+        openProfileUser('admin');
+        return;
+    }
+    
+    openProfileUser(senderId);
 }
 
 function startEditMessage(msgId, text) {
@@ -928,7 +943,8 @@ function executeForward(targetChatId) {
         forwardFrom: sourceTitle,
         reactions: {},
         deletedFor: [],
-        isEdited: false
+        isEdited: false,
+        status: 'sent'
     });
 
     const targetChat = getAllChatsList().find(c => c.id.toLowerCase() === targetChatId.toLowerCase());
@@ -1018,7 +1034,81 @@ function copyCurrentChatId() {
     setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 1800);
 }
 
+function playVoiceMessage(msgId) {
+    const audioEl = document.getElementById(`audio-${msgId}`);
+    const buttonEl = document.getElementById(`voice-btn-${msgId}`);
+    
+    if (!audioEl || !buttonEl) return;
+    
+    document.querySelectorAll('audio').forEach(a => {
+        if (a.id !== `audio-${msgId}`) {
+            a.pause();
+            a.currentTime = 0;
+        }
+    });
+    
+    document.querySelectorAll('.voice-message-button').forEach(btn => {
+        if (btn.id !== `voice-btn-${msgId}`) {
+            btn.classList.remove('playing');
+            const icon = btn.querySelector('.voice-play-icon');
+            if (icon) icon.className = 'fa fa-play voice-play-icon';
+        }
+    });
+    
+    if (audioEl.paused) {
+        buttonEl.classList.add('playing');
+        const playIcon = buttonEl.querySelector('.voice-play-icon');
+        if (playIcon) playIcon.className = 'fa fa-pause voice-play-icon';
+        audioEl.play().catch(function(err) {
+            console.warn('Audio play failed:', err);
+            buttonEl.classList.remove('playing');
+            const icon = buttonEl.querySelector('.voice-play-icon');
+            if (icon) icon.className = 'fa fa-play voice-play-icon';
+        });
+    } else {
+        audioEl.pause();
+        buttonEl.classList.remove('playing');
+        const playIcon = buttonEl.querySelector('.voice-play-icon');
+        if (playIcon) playIcon.className = 'fa fa-play voice-play-icon';
+    }
+    
+    if (audioEl.duration > 0) {
+        updateVoiceDuration(msgId, audioEl.duration);
+    }
+    
+    audioEl.onended = function() {
+        buttonEl.classList.remove('playing');
+        const playIcon = buttonEl.querySelector('.voice-play-icon');
+        if (playIcon) playIcon.className = 'fa fa-play voice-play-icon';
+    };
+    
+    audioEl.ontimeupdate = function() {
+        const current = audioEl.currentTime;
+        const durationEl = document.getElementById(`voice-duration-${msgId}`);
+        if (durationEl) {
+            durationEl.textContent = formatVoiceDuration(current);
+        }
+    };
+}
+
+function updateVoiceDuration(msgId, duration) {
+    const durationEl = document.getElementById(`voice-duration-${msgId}`);
+    if (durationEl) {
+        durationEl.textContent = formatVoiceDuration(duration);
+    }
+}
+
+function formatVoiceDuration(seconds) {
+    if (!seconds || isNaN(seconds)) return '۰:۰۰';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const minStr = String(mins).padStart(2, '0');
+    const secStr = String(secs).padStart(2, '0');
+    return `${minStr}:${secStr}`;
+}
+
 window.switchTab = switchTab;
+window.playVoiceMessage = playVoiceMessage;
 window.openChatOptionsMenu = openChatOptionsMenu;
 window.cancelReply = cancelReply;
 window.removePendingImage = removePendingImage;
@@ -1049,5 +1139,3 @@ window.executeDelete = executeDelete;
 window.executeForward = executeForward;
 window.closeChat = closeChat;
 window.goToUserChat = goToUserChat;
-window.openUserProfileView = openUserProfileView;
-window.closeUserProfileView = closeUserProfileView;
