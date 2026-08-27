@@ -282,7 +282,19 @@ async function startVoiceRecording() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         recordedAudioChunks = [];
-        mediaRecorderInstance = new MediaRecorder(stream);
+
+        /* انتخاب فرمت ضبط: در آیفون/سافاری اصلاً webm پشتیبانی نمی‌شود (نه ضبط، نه پخش)
+           و همین باعث می‌شد ویس‌ها روی گوشی‌های اپل اصلاً پخش نشوند. با اولویت دادن
+           به mp4 (که هم روی اندروید/کروم و هم روی آیفون/سافاری پخش می‌شود) این مشکل رفع می‌شود. */
+        const mimeCandidates = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
+        let chosenMime = '';
+        for (const m of mimeCandidates) {
+            if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) {
+                chosenMime = m;
+                break;
+            }
+        }
+        mediaRecorderInstance = chosenMime ? new MediaRecorder(stream, { mimeType: chosenMime }) : new MediaRecorder(stream);
 
         mediaRecorderInstance.ondataavailable = function(e) {
             if (e.data && e.data.size > 0) recordedAudioChunks.push(e.data);
@@ -291,7 +303,8 @@ async function startVoiceRecording() {
         mediaRecorderInstance.onstop = function() {
             stream.getTracks().forEach(track => track.stop());
             if (recordedAudioChunks.length === 0) return;
-            const blob = new Blob(recordedAudioChunks, { type: 'audio/webm' });
+            const actualMime = (mediaRecorderInstance.mimeType || chosenMime || 'audio/webm').split(';')[0];
+            const blob = new Blob(recordedAudioChunks, { type: actualMime });
             const reader = new FileReader();
             reader.onload = function(e) {
                 pendingVoiceBase64 = e.target.result;
