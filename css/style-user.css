@@ -146,6 +146,14 @@ html, body {
     height: 36px;
 }
 
+.voice-player { display:flex; align-items:center; gap:8px; max-width:220px; width:100%; margin:5px 0; background: rgba(0,0,0,0.18); border-radius:20px; padding:6px 10px; box-sizing:border-box; }
+.voice-play-btn { flex-shrink:0; width:28px; height:28px; border-radius:50%; border:none; background:#5288c1; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; padding:0; }
+.voice-play-btn i { position:relative; right:-1px; }
+.voice-progress-wrap { flex:1; display:flex; align-items:center; gap:6px; min-width:0; }
+.voice-progress-bar { flex:1; height:4px; background: rgba(255,255,255,0.2); border-radius:2px; overflow:hidden; }
+.voice-progress-fill { height:100%; width:0%; background:#5288c1; border-radius:2px; }
+.voice-time { font-size:10px; color:#b9c6d3; flex-shrink:0; min-width:34px; text-align:left; direction:ltr; }
+
 .sender-name { font-size: 11px; color: #e5824b; margin-bottom: 4px; font-weight: bold; display: flex; align-items: center; gap: 3px; width: fit-content; cursor: pointer; }
 .forwarded-header { font-size: 11px; color: #6ab0ff; font-style: italic; margin-bottom: 5px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 3px; }
 .edited-tag { font-size: 10px; color: #aaa; margin-right: 5px; font-style: italic; }
