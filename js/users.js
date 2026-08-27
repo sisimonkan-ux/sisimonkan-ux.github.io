@@ -236,6 +236,7 @@ function openSettings() {
     document.getElementById('setting-userid').value = currentUser.userId || '';
     document.getElementById('setting-username').value = currentUser.username || '';
     document.getElementById('setting-password').value = currentUser.password || '';
+    document.getElementById('setting-bio').value = currentUser.bio || '';
 
     const btnAdminPanel = document.getElementById('btn-admin-panel');
     if(currentUser.isAdmin) {
@@ -270,6 +271,7 @@ function saveSettings() {
     const newUserId = document.getElementById('setting-userid').value.trim().toLowerCase();
     const newUsername = document.getElementById('setting-username').value.trim();
     const newPassword = document.getElementById('setting-password').value.trim();
+    const newBio = document.getElementById('setting-bio').value.trim();
 
     if (!name || !newUserId || !newUsername || !newPassword) {
         return alert('تمام فیلدها را پر کنید');
@@ -279,6 +281,10 @@ function saveSettings() {
         currentUser.name = name;
         currentUser.family = family;
         currentUser.password = newPassword;
+        currentUser.bio = newBio;
+        if (!users['admin']) users['admin'] = currentUser;
+        users['admin'].bio = newBio;
+        saveUsers('admin');
         persistSession();
         alert('اطلاعات مدیریت با موفقیت بروز شد!');
         openSettings();
@@ -303,6 +309,7 @@ function saveSettings() {
     currentUser.userId = newUserId;
     currentUser.username = newUsername;
     currentUser.password = newPassword;
+    currentUser.bio = newBio;
 
     users[newUserId] = currentUser;
 
@@ -330,7 +337,7 @@ function searchUser() {
 
     if (users[searchId] || searchId === 'admin') {
         const targetName = users[searchId] ? `${users[searchId].name} ${users[searchId].family}` : 'پشتیبانی مرکزی';
-        const isVerified = searchId === 'admin' || (users[searchId] && users[searchId].isAdmin);
+        const isVerified = searchId === 'admin' || (users[searchId] && (users[searchId].isAdmin || users[searchId].verified));
         openChat(searchId, targetName, 'direct', isVerified);
         document.getElementById('search-input').value = '';
         return;
@@ -351,7 +358,7 @@ function searchUser() {
         if (data) {
             users[searchId] = data;
             localStorage.setItem('app_users_v6', JSON.stringify(users));
-            openChat(searchId, `${data.name} ${data.family}`, 'direct', !!data.isAdmin);
+            openChat(searchId, `${data.name} ${data.family}`, 'direct', !!(data.isAdmin || data.verified));
             document.getElementById('search-input').value = '';
         } else {
             alert('کاربری با این آیدی یافت نشد!');

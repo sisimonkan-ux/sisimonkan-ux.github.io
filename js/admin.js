@@ -21,6 +21,9 @@ function openAdminPanel() {
                 ? `<div style="font-size:10px; color:#ffb84d; margin-top:6px;"><i class="fa fa-clock"></i> تعلیق تا ${new Date(u.suspendedUntil).toLocaleDateString('fa-IR')}</div>`
                 : '';
 
+            const isVerified = !!u.verified;
+            const verifiedNameBadge = isVerified ? ' <i class="fa-solid fa-circle-check verified-badge"></i>' : '';
+
             const div = document.createElement('div');
             div.className = 'user-list-item';
             div.style.flexDirection = 'column';
@@ -30,7 +33,7 @@ function openAdminPanel() {
                     <div style="display:flex; align-items:center;">
                         ${avatarHtml}
                         <div>
-                            <b>${u.name} ${u.family}</b>
+                            <b>${u.name} ${u.family}${verifiedNameBadge}</b>
                             <div style="font-size:11px; color:#6ab0ff;">@${u.userId}</div>
                         </div>
                     </div>
@@ -45,6 +48,7 @@ function openAdminPanel() {
                     </select>
                     <button class="modal-btn btn-secondary" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminSuspendUser('${u.userId}')"><i class="fa fa-clock"></i> تعلیق</button>
                     ${isSuspended ? `<button class="modal-btn btn-secondary" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminUnsuspendUser('${u.userId}')"><i class="fa fa-unlock"></i> لغو تعلیق</button>` : ''}
+                    <button class="modal-btn btn-secondary" style="flex:1; min-width:80px; padding:6px; font-size:11px; ${isVerified ? 'background:#2AABEE;' : ''}" onclick="adminToggleVerified('${u.userId}')"><i class="fa fa-certificate"></i> ${isVerified ? 'حذف تیک رسمی' : 'دادن تیک رسمی'}</button>
                     <button class="modal-btn btn-danger" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminDeleteUser('${u.userId}')"><i class="fa fa-trash"></i> حذف اکانت</button>
                 </div>
             `;
@@ -105,6 +109,18 @@ function adminUnsuspendUser(userId) {
     openAdminPanel();
 }
 
+/* ---------- دادن / حذف تیک رسمی (Verified) به یک اکانت ---------- */
+function adminToggleVerified(userId) {
+    const uid = userId.toLowerCase();
+    if (!users[uid]) return;
+
+    users[uid].verified = !users[uid].verified;
+    saveUsers(uid);
+
+    alert(users[uid].verified ? `تیک رسمی به @${userId} داده شد.` : `تیک رسمی از @${userId} حذف شد.`);
+    openAdminPanel();
+}
+
 function toggleChatLock(chatId) {
     chatLockStatus[chatId] = !chatLockStatus[chatId];
     localStorage.setItem('app_chat_locks_v6', JSON.stringify(chatLockStatus));
@@ -121,3 +137,4 @@ window.toggleChatLock = toggleChatLock;
 window.adminDeleteUser = adminDeleteUser;
 window.adminSuspendUser = adminSuspendUser;
 window.adminUnsuspendUser = adminUnsuspendUser;
+window.adminToggleVerified = adminToggleVerified;
