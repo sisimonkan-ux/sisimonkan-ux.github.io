@@ -51,11 +51,16 @@ function renderChatList() {
 
         const hasReactionAlert = (reactionAlerts[myId] || {})[chat.id.toLowerCase()];
         const hasReplyAlert = (replyAlerts[myId] || {})[chat.id.toLowerCase()];
+        const isMuted = (mutedChats[myId] || []).includes(chat.id.toLowerCase());
 
         let badgesHtml = '<div class="badge-container">';
         if (hasReactionAlert) badgesHtml += `<span class="reaction-badge">❤️</span>`;
         if (hasReplyAlert) badgesHtml += `<span class="reply-badge" title="پاسخ داده شده"><i class="fa fa-reply"></i></span>`;
-        if (count > 0) badgesHtml += `<span class="unread-badge">${count}</span>`;
+        if (isMuted) {
+            badgesHtml += `<i class="fa fa-bell-slash muted-chat-icon" title="بی‌صدا"></i>`;
+        } else if (count > 0) {
+            badgesHtml += `<span class="unread-badge">${count}</span>`;
+        }
         badgesHtml += '</div>';
 
         const verifiedHtml = chat.isVerified ? '<i class="fa-solid fa-circle-check verified-badge"></i>' : '';
@@ -170,8 +175,10 @@ function openChat(chatId, title, type, isVerified) {
     const verifiedHtml = isVerified ? ' <i class="fa-solid fa-circle-check verified-badge"></i>' : '';
     document.getElementById('current-chat-title').innerHTML = title + verifiedHtml;
     const subtitleEl = document.getElementById('current-chat-subtitle');
+    subtitleEl.classList.remove('user-id-text');
     if (type === 'direct') {
         subtitleEl.textContent = '@' + chatId;
+        subtitleEl.classList.add('user-id-text');
     } else if (type === 'group') {
         subtitleEl.textContent = 'گروه';
     } else if (type === 'channel') {

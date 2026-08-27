@@ -44,6 +44,7 @@ let users = JSON.parse(localStorage.getItem('app_users_v6')) || {};
 let messages = JSON.parse(localStorage.getItem('app_messages_v6')) || [];
 let unreadCounts = JSON.parse(localStorage.getItem('app_unread_v6')) || {};
 let blockedUsers = JSON.parse(localStorage.getItem('app_blocked_v6')) || {};
+let mutedChats = JSON.parse(localStorage.getItem('app_muted_chats_v6')) || {};
 let reactionAlerts = JSON.parse(localStorage.getItem('app_reaction_alerts_v6')) || {};
 let replyAlerts = JSON.parse(localStorage.getItem('app_reply_alerts_v6')) || {};
 let chatMetaData = JSON.parse(localStorage.getItem('app_chat_meta_v6')) || {};

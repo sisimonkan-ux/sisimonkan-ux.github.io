@@ -223,10 +223,10 @@ function uploadUserAvatar(event) {
 function renderSettingsAvatar() {
     const avatarBox = document.getElementById('settings-avatar-box');
     if (currentUser.avatar) {
-        avatarBox.innerHTML = `<img src="${currentUser.avatar}" class="profile-avatar">`;
+        avatarBox.innerHTML = `<img src="${currentUser.avatar}" class="profile-avatar profile-avatar-lg">`;
     } else {
         const initial = currentUser.name ? currentUser.name.charAt(0) : '؟';
-        avatarBox.innerHTML = `<div class="profile-avatar" id="settings-avatar-icon">${initial}</div>`;
+        avatarBox.innerHTML = `<div class="profile-avatar profile-avatar-lg" id="settings-avatar-icon">${initial}</div>`;
     }
 }
 
@@ -383,10 +383,10 @@ function renderContactProfileModal(uid) {
 
     const avatarBox = document.getElementById('contact-profile-avatar');
     if (data.avatar) {
-        avatarBox.innerHTML = `<img src="${data.avatar}" class="profile-avatar">`;
+        avatarBox.innerHTML = `<img src="${data.avatar}" class="profile-avatar profile-avatar-lg">`;
     } else {
         const initial = fullName.charAt(0).toUpperCase();
-        avatarBox.innerHTML = `<div class="profile-avatar">${initial}</div>`;
+        avatarBox.innerHTML = `<div class="profile-avatar profile-avatar-lg">${initial}</div>`;
     }
 
     const bioEl = document.getElementById('contact-profile-bio');
@@ -397,6 +397,8 @@ function renderContactProfileModal(uid) {
         bioEl.innerText = 'بیوگرافی ثبت نشده است';
         bioEl.classList.add('profile-bio-empty');
     }
+
+    renderContactMuteState(uid);
 }
 
 function closeContactProfile() {
@@ -407,6 +409,55 @@ function closeContactProfile() {
 function copyContactProfileId() {
     if (!currentProfileTargetId) return;
     copyTextWithToast('@' + currentProfileTargetId);
+}
+
+/* دکمه «پیام»: چون این مودال همیشه از داخل همان پیوی باز می‌شود، کافیست
+   بسته شود و فوکوس روی کادر نوشتن پیام برود. */
+function contactProfileMessage() {
+    closeContactProfile();
+    const input = document.getElementById('message-input');
+    if (input) input.focus();
+}
+
+/* دکمه «تماس»: این نسخه از برنامه قابلیت تماس صوتی/تصویری واقعی ندارد. */
+function contactProfileCall() {
+    alert('قابلیت تماس صوتی در این نسخه هنوز فعال نشده است.');
+}
+
+function renderContactMuteState(uid) {
+    const myId = currentUser.userId.toLowerCase();
+    const isMuted = (mutedChats[myId] || []).includes(uid);
+
+    const btn = document.getElementById('contact-mute-btn');
+    const icon = document.getElementById('contact-mute-icon');
+    const label = document.getElementById('contact-mute-label');
+    if (!btn || !icon || !label) return;
+
+    btn.classList.toggle('muted', isMuted);
+    icon.classList.toggle('fa-bell-slash', !isMuted);
+    icon.classList.toggle('fa-bell', isMuted);
+    label.innerText = isMuted ? 'صدادار کردن' : 'بی‌صدا کردن';
+}
+
+/* بی‌صدا کردن یک گفتگو: چون این برنامه اعلان (نوتیفیکیشن) سیستمی ارسال نمی‌کند،
+   منظور از «بی‌صدا» اینجا این است که در لیست گفتگوها به‌جای عدد پیام‌های
+   نخوانده، فقط یک آیکون کوچک بی‌صدا نشان داده شود (دقیقا مثل تلگرام).
+   این تنظیم فقط روی همین دستگاه ذخیره می‌شود. */
+function toggleContactMute() {
+    if (!currentProfileTargetId) return;
+    const myId = currentUser.userId.toLowerCase();
+    if (!mutedChats[myId]) mutedChats[myId] = [];
+
+    const idx = mutedChats[myId].indexOf(currentProfileTargetId);
+    if (idx > -1) {
+        mutedChats[myId].splice(idx, 1);
+    } else {
+        mutedChats[myId].push(currentProfileTargetId);
+    }
+
+    localStorage.setItem('app_muted_chats_v6', JSON.stringify(mutedChats));
+    renderContactMuteState(currentProfileTargetId);
+    if (typeof renderChatList === 'function') renderChatList();
 }
 
 function searchUser() {
@@ -464,6 +515,9 @@ window.saveSettings = saveSettings;
 window.openContactProfile = openContactProfile;
 window.closeContactProfile = closeContactProfile;
 window.copyContactProfileId = copyContactProfileId;
+window.contactProfileMessage = contactProfileMessage;
+window.contactProfileCall = contactProfileCall;
+window.toggleContactMute = toggleContactMute;
 
 /* هنگام لود اولیه‌ی صفحه، اگر کاربر قبلاً وارد شده، به‌جای صفحه‌ی ورود مستقیم به چت‌ها می‌رویم.
    کمی تأخیر می‌دهیم تا لیستنرهای دیتابیس در core.js اولین دیتای users را بگیرند. */
