@@ -271,6 +271,14 @@ function removePendingVoice() {
     if (audioEl) audioEl.src = '';
 }
 
+function formatRecordTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const minStr = String(mins).padStart(2, '0');
+    const secStr = String(secs).padStart(2, '0');
+    return `${minStr}:${secStr}`;
+}
+
 async function startVoiceRecording() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند.');
@@ -705,7 +713,7 @@ function renderMessages(unreadStartIndex = -1) {
         let voiceHtml = '';
         if (msg.voice) {
             voiceHtml = `
-                <div class="voice-message-button" onclick="event.stopPropagation(); playVoiceMessage('${msg.id}', '${msg.voice}')">
+                <div class="voice-message-button" id="voice-btn-${msg.id}" onclick="event.stopPropagation(); playVoiceMessage('${msg.id}')">
                     <i class="fa fa-play voice-play-icon"></i>
                     <span class="voice-duration" id="voice-duration-${msg.id}">۰:۰۰</span>
                 </div>
@@ -972,11 +980,11 @@ function copyCurrentChatId() {
 }
 
 // ===== VOICE MESSAGE PLAYER FUNCTIONS =====
-function playVoiceMessage(msgId, voiceSrc) {
+function playVoiceMessage(msgId) {
     const audioEl = document.getElementById(`audio-${msgId}`);
-    const buttonEl = document.querySelector(`[onclick*="playVoiceMessage('${msgId}'"]`).parentElement.querySelector('.voice-message-button');
+    const buttonEl = document.getElementById(`voice-btn-${msgId}`);
     
-    if (!audioEl) return;
+    if (!audioEl || !buttonEl) return;
     
     // Stop any other playing audio
     document.querySelectorAll('audio').forEach(a => {
@@ -986,11 +994,13 @@ function playVoiceMessage(msgId, voiceSrc) {
         }
     });
     
-    // Update button state
+    // Reset all other buttons
     document.querySelectorAll('.voice-message-button').forEach(btn => {
-        btn.classList.remove('playing');
-        const icon = btn.querySelector('.voice-play-icon');
-        if (icon) icon.className = 'fa fa-play voice-play-icon';
+        if (btn.id !== `voice-btn-${msgId}`) {
+            btn.classList.remove('playing');
+            const icon = btn.querySelector('.voice-play-icon');
+            if (icon) icon.className = 'fa fa-play voice-play-icon';
+        }
     });
     
     if (audioEl.paused) {
@@ -998,10 +1008,18 @@ function playVoiceMessage(msgId, voiceSrc) {
         buttonEl.classList.add('playing');
         const playIcon = buttonEl.querySelector('.voice-play-icon');
         if (playIcon) playIcon.className = 'fa fa-pause voice-play-icon';
-        audioEl.play();
+        audioEl.play().catch(function(err) {
+            console.warn('Audio play failed:', err);
+            buttonEl.classList.remove('playing');
+            const icon = buttonEl.querySelector('.voice-play-icon');
+            if (icon) icon.className = 'fa fa-play voice-play-icon';
+        });
     } else {
         // Pause the audio
         audioEl.pause();
+        buttonEl.classList.remove('playing');
+        const playIcon = buttonEl.querySelector('.voice-play-icon');
+        if (playIcon) playIcon.className = 'fa fa-play voice-play-icon';
     }
     
     // Update duration display
@@ -1034,6 +1052,7 @@ function updateVoiceDuration(msgId, duration) {
 }
 
 function formatVoiceDuration(seconds) {
+    if (!seconds || isNaN(seconds)) return '۰:۰۰';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     const minStr = String(mins).padStart(2, '0');
