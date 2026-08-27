@@ -271,6 +271,65 @@ function removePendingVoice() {
     if (audioEl) audioEl.src = '';
 }
 
+/* ---------- پلیر سفارشی پیام‌های صوتی ----------
+   به‌جای <audio controls> پیش‌فرض مرورگر (که در برخی مرورگرهای درون‌برنامه‌ای
+   مثل مرورگر داخلی اینستاگرام/تلگرام و بعضی وب‌ویوهای اندروید اصلاً کنترل‌های
+   پخش را نشان نمی‌داد و فقط یک باکس خالی دیده می‌شد)، یک پلیر ساده و سفارشی
+   با دکمه پخش/توقف و نوار پیشرفت ساخته‌ایم که در همه‌جا یکسان کار می‌کند. */
+function getVoicePlayerParts(audioEl) {
+    const wrap = audioEl.closest('.voice-player');
+    return {
+        wrap,
+        btnIcon: wrap ? wrap.querySelector('.voice-play-btn i') : null,
+        fill: wrap ? wrap.querySelector('.voice-progress-fill') : null,
+        timeEl: wrap ? wrap.querySelector('.voice-time') : null
+    };
+}
+
+function toggleVoicePlay(btnEl) {
+    const wrap = btnEl.closest('.voice-player');
+    if (!wrap) return;
+    const audio = wrap.querySelector('.voice-audio-el');
+    if (!audio) return;
+
+    document.querySelectorAll('.voice-audio-el').forEach(a => {
+        if (a !== audio && !a.paused) a.pause();
+    });
+
+    if (audio.paused) {
+        audio.play().catch(() => {
+            alert('پخش پیام صوتی ممکن نشد.');
+        });
+    } else {
+        audio.pause();
+    }
+}
+
+function markVoicePlaying(audioEl) {
+    const { btnIcon } = getVoicePlayerParts(audioEl);
+    if (btnIcon) { btnIcon.classList.remove('fa-play'); btnIcon.classList.add('fa-pause'); }
+}
+
+function resetVoicePlayIcon(audioEl) {
+    const { btnIcon } = getVoicePlayerParts(audioEl);
+    if (btnIcon) { btnIcon.classList.remove('fa-pause'); btnIcon.classList.add('fa-play'); }
+}
+
+function resetVoicePlayer(audioEl) {
+    resetVoicePlayIcon(audioEl);
+    audioEl.currentTime = 0;
+    updateVoiceProgress(audioEl);
+}
+
+function updateVoiceProgress(audioEl) {
+    const { fill, timeEl } = getVoicePlayerParts(audioEl);
+    const duration = (isFinite(audioEl.duration) && audioEl.duration > 0) ? audioEl.duration : 0;
+    const current = audioEl.currentTime || 0;
+
+    if (fill) fill.style.width = (duration ? Math.min(100, (current / duration) * 100) : 0) + '%';
+    if (timeEl) timeEl.innerText = formatRecordTime(current > 0 ? current : duration);
+}
+
 async function startVoiceRecording() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند.');
@@ -716,7 +775,21 @@ function renderMessages(unreadStartIndex = -1) {
 
         let voiceHtml = '';
         if (msg.voice) {
-            voiceHtml = `<audio src="${msg.voice}" class="message-voice" controls onclick="event.stopPropagation();"></audio>`;
+            voiceHtml = `
+            <div class="voice-player" id="voice-player-${msg.id}">
+                <button type="button" class="voice-play-btn" onclick="event.stopPropagation(); toggleVoicePlay(this)"><i class="fa fa-play"></i></button>
+                <div class="voice-progress-wrap">
+                    <div class="voice-progress-bar"><div class="voice-progress-fill"></div></div>
+                    <span class="voice-time">00:00</span>
+                </div>
+                <audio class="voice-audio-el hidden" src="${msg.voice}" preload="metadata"
+                    ontimeupdate="updateVoiceProgress(this)"
+                    onloadedmetadata="updateVoiceProgress(this)"
+                    onended="resetVoicePlayer(this)"
+                    onpause="resetVoicePlayIcon(this)"
+                    onplay="markVoicePlaying(this)"
+                ></audio>
+            </div>`;
         }
 
         let editedHtml = msg.isEdited ? '<span class="edited-tag">(ویرایش شده)</span>' : '';
@@ -1012,6 +1085,11 @@ window.closeImageViewer = closeImageViewer;
 window.openChat = openChat;
 window.copyCurrentChatId = copyCurrentChatId;
 window.openHeaderProfile = openHeaderProfile;
+window.toggleVoicePlay = toggleVoicePlay;
+window.markVoicePlaying = markVoicePlaying;
+window.resetVoicePlayIcon = resetVoicePlayIcon;
+window.resetVoicePlayer = resetVoicePlayer;
+window.updateVoiceProgress = updateVoiceProgress;
 window.toggleBlockUser = toggleBlockUser;
 window.openDeleteChatModal = openDeleteChatModal;
 window.viewFullImage = viewFullImage;
