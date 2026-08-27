@@ -4,6 +4,65 @@
    این فایل باید همیشه اول از همه لود شود.
    ========================================================= */
 
+/* ---------- جایگزین سفارشی alert() و confirm() ----------
+   مرورگر روی پاپ‌آپ‌های alert/confirm پیش‌فرض، آدرس سایت را
+   نمایش می‌دهد (مثلا "example.github.io می‌گوید"). این باکس‌های
+   سفارشی همان ظاهر و رفتار را می‌دهند بدون اینکه آدرس دامنه دیده شود؛
+   این کار همچنین باعث می‌شود در نسخه APK هم آدرسی نمایش داده نشود. */
+(function () {
+    const style = document.createElement('style');
+    style.textContent = `
+        .cm-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 99999; padding: 20px; box-sizing: border-box;
+        }
+        .cm-box {
+            background: #242f3d; color: #fff; width: 100%; max-width: 320px;
+            border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            text-align: center; font-family: inherit;
+        }
+        .cm-message { font-size: 14px; line-height: 1.9; white-space: pre-line; margin-bottom: 18px; }
+        .cm-buttons { display: flex; gap: 8px; }
+        .cm-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 6px;
+            cursor: pointer; font-size: 14px; font-weight: bold; font-family: inherit;
+        }
+        .cm-btn-ok { background: #5288c1; color: #fff; }
+        .cm-btn-cancel { background: #17212b; color: #ccc; }
+    `;
+    document.head.appendChild(style);
+
+    function buildOverlay(message, buttonsHtml) {
+        const overlay = document.createElement('div');
+        overlay.className = 'cm-overlay';
+        overlay.innerHTML = `
+            <div class="cm-box">
+                <div class="cm-message"></div>
+                <div class="cm-buttons">${buttonsHtml}</div>
+            </div>`;
+        overlay.querySelector('.cm-message').textContent = message;
+        document.body.appendChild(overlay);
+        return overlay;
+    }
+
+    window.alert = function (message) {
+        const overlay = buildOverlay(message, `<button class="cm-btn cm-btn-ok" data-act="ok">تأیید</button>`);
+        overlay.querySelector('[data-act="ok"]').onclick = () => overlay.remove();
+    };
+
+    window.customConfirm = function (message) {
+        return new Promise((resolve) => {
+            const overlay = buildOverlay(message, `
+                <button class="cm-btn cm-btn-cancel" data-act="cancel">لغو</button>
+                <button class="cm-btn cm-btn-ok" data-act="ok">تأیید</button>
+            `);
+            overlay.querySelector('[data-act="ok"]').onclick = () => { overlay.remove(); resolve(true); };
+            overlay.querySelector('[data-act="cancel"]').onclick = () => { overlay.remove(); resolve(false); };
+        });
+    };
+})();
+
 const firebaseConfig = {
   apiKey: "AIzaSyAUYnjKIDW33M4g6vFxDwYiIm3ZPFmPP9Q",
   authDomain: "jonlon.firebaseapp.com",
