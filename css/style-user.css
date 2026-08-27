@@ -152,9 +152,6 @@ html, body {
 .mention-link { color: #6ab0ff; font-weight: bold; }
 
 .reactions-container { margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap; }
-.msg-ticks-row { display: flex; justify-content: flex-end; align-items: center; margin-top: 3px; }
-.msg-ticks { font-size: 11px; color: rgba(255,255,255,0.55); }
-.msg-ticks.seen { color: #6ab0ff; }
 .reaction-chip { font-size: 11px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
 .replied-box { background: rgba(0,0,0,0.25); padding: 5px; border-right: 3px solid #5288c1; font-size: 12px; margin-bottom: 5px; border-radius: 3px; }
 
