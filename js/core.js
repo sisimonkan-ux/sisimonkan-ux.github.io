@@ -37,8 +37,8 @@ let mediaRecorderInstance = null;
 let recordedAudioChunks = [];
 let voiceRecordTimerInterval = null;
 let voiceRecordSeconds = 0;
-const MAX_VOICE_SECONDS = 120;      // حداکثر ۲ دقیقه ویس
-const MAX_VIDEO_FILE_MB = 15;       // حداکثر حجم ویدیو (به مگابایت)
+const MAX_VOICE_SECONDS = 120;
+const MAX_VIDEO_FILE_MB = 15;
 
 let users = JSON.parse(localStorage.getItem('app_users_v6')) || {};
 let messages = JSON.parse(localStorage.getItem('app_messages_v6')) || [];
@@ -47,6 +47,7 @@ let blockedUsers = JSON.parse(localStorage.getItem('app_blocked_v6')) || {};
 let reactionAlerts = JSON.parse(localStorage.getItem('app_reaction_alerts_v6')) || {};
 let replyAlerts = JSON.parse(localStorage.getItem('app_reply_alerts_v6')) || {};
 let chatMetaData = JSON.parse(localStorage.getItem('app_chat_meta_v6')) || {};
+let pendingStatusUpdates = {};
 
 let chatLockStatus = JSON.parse(localStorage.getItem('app_chat_locks_v6')) || {
     'news_channel': true,
@@ -56,8 +57,33 @@ let chatLockStatus = JSON.parse(localStorage.getItem('app_chat_locks_v6')) || {
 /* ---------- Firebase Sync Listeners ---------- */
 db.ref('app_messages_v6').on('value', (snapshot) => {
     const data = snapshot.val();
-    messages = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+    const newMessages = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+    
+    // ===== به‌روزرسانی وضعیت پیام‌ها برای کاربر فعلی =====
+    if (currentUser && !currentUser.isAdmin) {
+        const myId = currentUser.userId.toLowerCase();
+        let needsUpdate = false;
+        
+        newMessages.forEach(msg => {
+            if (msg.chatId && msg.sender) {
+                const chatIdLower = msg.chatId.toLowerCase();
+                const senderLower = msg.sender.toLowerCase();
+                
+                if (chatIdLower === myId && senderLower !== myId && msg.status === 'sent') {
+                    msg.status = 'delivered';
+                    needsUpdate = true;
+                }
+            }
+        });
+        
+        if (needsUpdate) {
+            db.ref('app_messages_v6').set(newMessages);
+        }
+    }
+    
+    messages = newMessages;
     localStorage.setItem('app_messages_v6', JSON.stringify(messages));
+    
     if (currentChat) renderMessages();
     renderChatList();
 });
@@ -68,9 +94,6 @@ db.ref('app_users_v6').on('value', (snapshot) => {
     localStorage.setItem('app_users_v6', JSON.stringify(users));
     renderChatList();
 
-    /* اگر همین الان یک کاربر عادی داخل برنامه لاگین است و مدیریت
-       اکانتش را حذف یا تعلیق کرده باشد، بلافاصله (بدون نیاز به رفرش
-       یا خروج/ورود دستی) از حساب خارجش می‌کنیم. */
     if (currentUser && !currentUser.isAdmin) {
         const uid = currentUser.userId.toLowerCase();
         const freshUser = users[uid];
@@ -186,10 +209,15 @@ function saveMessages() {
     db.ref('app_messages_v6').set(messages);
 }
 
-/* توجه: به‌جای بازنویسی کل نود app_users_v6 (که در صورت ناقص/قدیمی بودن
-   نسخه‌ی محلی، باعث پاک شدن اکانت‌های دیگران می‌شد)، فقط رکورد همان
-   کاربری که تغییر کرده را در دیتابیس می‌نویسیم. اگر رنیم/تغییر آیدی
-   رخ داده باشد (deletedUserId)، آیدی قدیمی را جداگانه حذف می‌کنیم. */
+function updateMessageStatus(msgId, newStatus) {
+    const msg = messages.find(m => m.id === msgId);
+    if (!msg) return;
+    if (msg.status === newStatus) return;
+    msg.status = newStatus;
+    saveMessages();
+    if (currentChat) renderMessages();
+}
+
 function saveUsers(changedUserId, deletedUserId) {
     localStorage.setItem('app_users_v6', JSON.stringify(users));
 
@@ -228,26 +256,13 @@ function switchMainSection(tab) {
 
 window.switchMainSection = switchMainSection;
 
-/* ---------- تطبیق ارتفاع صفحه با ظاهر شدن کیبورد موبایل ----------
-   چون html/body با position:fixed تنظیم شده، با باز شدن کیبورد در
-   موبایل، ارتفاع innerHeight تغییر نمی‌کند و کادر نوشتن پیام زیر
-   کیبورد پنهان می‌ماند. با گوش دادن به visualViewport، ارتفاع واقعی
-   صفحه‌ی قابل مشاهده را به .screen اعمال می‌کنیم تا کادر ورودی همیشه
-   بالای کیبورد باقی بماند. */
+/* ---------- تطبیق ارتفاع صفحه با ظاهر شدن کیبورد موبایل ---------- */
 function setupViewportKeyboardFix() {
     function updateHeight() {
         const vv = window.visualViewport;
-        // برخی مرورگرهای موبایل (مخصوصاً غیر از کروم) مقدار visualViewport.height
-        // را کوچک‌تر از ارتفاع واقعی صفحه گزارش می‌دهند، حتی وقتی کیبورد بسته است.
-        // اگر همیشه همان مقدار را اعمال کنیم، صفحه کوتاه‌تر از حالت واقعی می‌شود
-        // و پس‌زمینه‌ی body (فضای خالی) بالا/پایین کادر پیام دیده می‌شود.
-        // برای جلوگیری از این باگ، فقط وقتی ارتفاع را کوچک می‌کنیم که واقعاً
-        // کیبورد باز شده باشد (اختلاف محسوس با window.innerHeight)؛ در غیر این
-        // صورت از window.innerHeight (که همیشه ارتفاع واقعی صفحه است) استفاده می‌کنیم.
         const winH = window.innerHeight;
         let h = winH;
         if (vv && winH - vv.height > 100) {
-            // اختلاف محسوس = کیبورد باز است، از ارتفاع واقعی قابل مشاهده استفاده کن
             h = vv.height;
         }
         document.querySelectorAll('.screen').forEach(el => {
@@ -263,8 +278,6 @@ function setupViewportKeyboardFix() {
     window.addEventListener('resize', updateHeight);
     updateHeight();
 
-    // وقتی کاربر روی کادر نوشتن پیام می‌زند، مطمئن می‌شویم آن قسمت
-    // در دید باقی می‌ماند و کیبورد آن را نمی‌پوشاند.
     const msgInput = document.getElementById('message-input');
     if (msgInput) {
         msgInput.addEventListener('focus', () => {
