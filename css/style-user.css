@@ -35,10 +35,76 @@ html, body {
 }
 
 /* Auth Screen */
-#auth-screen { justify-content: center; align-items: center; background: #17212b; width: 100%; position: relative; padding-top: calc(28px + env(safe-area-inset-top, 0px)); }
-.auth-card { background: #242f3d; padding: 25px; border-radius: 12px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-.auth-card input { width: 100%; padding: 11px; margin: 8px 0; border-radius: 6px; border: 1px solid #17212b; background: #0e1621; color: #fff; text-align: center; outline: none; }
-.auth-card button { width: 100%; padding: 11px; background: #5288c1; border: none; color: white; border-radius: 6px; margin-top: 10px; cursor: pointer; font-weight: bold; }
+#auth-screen {
+    justify-content: flex-start;
+    align-items: center;
+    background:
+        radial-gradient(circle at 50% -10%, rgba(82,136,193,0.35), transparent 55%),
+        linear-gradient(180deg, #17212b 0%, #0e1621 100%);
+    width: 100%;
+    position: relative;
+    padding-top: calc(52px + env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+}
+
+.auth-logo-wrap { display:flex; flex-direction:column; align-items:center; margin-bottom: 26px; flex-shrink:0; }
+.auth-logo-badge {
+    width: 78px; height: 78px; border-radius: 24px;
+    background: linear-gradient(145deg, #64a6e6, #3d6fa8);
+    display:flex; align-items:center; justify-content:center;
+    font-size: 34px; color:#fff;
+    box-shadow: 0 10px 30px rgba(41,102,163,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
+    animation: authLogoPop .6s cubic-bezier(.2,.9,.3,1.3);
+}
+.auth-logo-title { margin-top: 16px; font-size: 20px; font-weight: bold; letter-spacing: .3px; }
+.auth-logo-sub { margin-top: 4px; font-size: 12.5px; color: #7f91a4; }
+@keyframes authLogoPop { from { transform: scale(.4) rotate(-8deg); opacity:0; } to { transform: scale(1) rotate(0); opacity:1; } }
+
+.auth-card {
+    background: rgba(36,47,61,0.9);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    padding: 26px 22px 22px;
+    border-radius: 18px;
+    width: 90%;
+    max-width: 340px;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 40px;
+    flex-shrink: 0;
+}
+.auth-card h2 { font-size: 16px; }
+.auth-field { position: relative; margin: 12px 0; text-align: right; }
+.auth-field i {
+    position: absolute; top: 50%; right: 14px; transform: translateY(-50%);
+    color: #5288c1; font-size: 14px; pointer-events: none;
+}
+.auth-card input {
+    width: 100%; padding: 13px 40px 13px 14px; border-radius: 10px;
+    border: 1px solid #17212b; background: #0e1621; color: #fff;
+    text-align: right; outline: none; font-size: 14px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.auth-card input:focus { border-color: #5288c1; box-shadow: 0 0 0 3px rgba(82,136,193,0.2); }
+.auth-card button {
+    width: 100%; padding: 13px; border: none; color: white; border-radius: 10px;
+    margin-top: 14px; cursor: pointer; font-weight: bold; font-size: 14px;
+    background: linear-gradient(135deg, #64a6e6, #4177ab);
+    box-shadow: 0 6px 18px rgba(65,119,171,0.45);
+    transition: transform .12s, box-shadow .12s;
+}
+.auth-card button:active { transform: scale(.98); box-shadow: 0 3px 10px rgba(65,119,171,0.4); }
+.auth-vpn-note {
+    font-size: 11.5px; color: #ffb84d; background: rgba(255,184,77,0.1);
+    border: 1px solid rgba(255,184,77,0.35); border-radius: 8px;
+    padding: 9px 10px; margin-bottom: 10px; line-height: 1.8; text-align: right;
+}
+.auth-switch-link { font-size: 12.5px; color: #8a99a8; margin-top: 14px; }
+.auth-switch-link a { color: #6ab0ff; font-weight: bold; }
+.auth-step-dots { display:flex; justify-content:center; gap:6px; margin-bottom: 16px; }
+.auth-step-dots span { width:7px; height:7px; border-radius:50%; background:#37424f; transition: background .2s, transform .2s; }
+.auth-step-dots span.active { background:#5288c1; transform: scale(1.25); }
 
 /* Header */
 .header { padding: 12px 15px; padding-top: calc(28px + env(safe-area-inset-top, 0px)); background: #242f3d; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #17212b; flex-shrink: 0; position: relative; }
@@ -302,10 +368,75 @@ html, body {
 .user-id-text { direction: ltr; unicode-bidi: plaintext; text-align: right; }
 
 /* ---------- کارت پروفایل (خود کاربر و مخاطب) به سبک تلگرام ---------- */
-.profile-avatar-lg { width: 88px !important; height: 88px !important; font-size: 32px !important; }
+.profile-avatar-lg { width: 116px !important; height: 116px !important; font-size: 40px !important; }
 
-.own-profile-header { display:flex; flex-direction:column; align-items:center; margin-bottom:16px; text-align:center; }
-.own-profile-name { margin-top:10px; margin-bottom:0; font-size:17px; }
+.own-profile-header { display:flex; flex-direction:column; align-items:center; margin-bottom:18px; text-align:center; padding-top: 6px; }
+.own-profile-name { margin-top:14px; margin-bottom:0; font-size:19px; font-weight:bold; }
+.own-profile-username { margin-top:3px; font-size:13px; color:#7f91a4; direction:ltr; }
+
+/* ---------- حلقه‌ی استوری دور آواتار ---------- */
+.story-ring-wrap { position: relative; width: 128px; height: 128px; }
+.story-ring {
+    position:absolute; inset:0; border-radius:50%; padding:4px;
+    background: conic-gradient(from 0deg, #4fc3f7, #5288c1, #a06be0, #e5824b, #4fc3f7);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+}
+.story-ring.no-story { background: #2c3947; opacity: .55; }
+.story-ring-wrap .profile-avatar-wrapper { position:absolute; inset:6px; }
+.story-ring-wrap .profile-avatar-lg { width:100% !important; height:100% !important; }
+.story-add-btn {
+    position:absolute; left:2px; bottom:2px; width:30px; height:30px; border-radius:50%;
+    background: linear-gradient(135deg, #64a6e6, #4177ab); border:3px solid #0e1621;
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px;
+    cursor:pointer; z-index:2;
+}
+
+/* دکمه‌های سریع پروفایل: تنظیم عکس / ویرایش اطلاعات / تنظیمات */
+.profile-quick-actions { display:flex; gap:10px; margin: 4px 0 16px; }
+.profile-quick-btn {
+    flex:1; background:#17212b; border:1px solid #242f3d; border-radius:12px;
+    padding:12px 4px; display:flex; flex-direction:column; align-items:center; gap:6px;
+    cursor:pointer; color:#c7d3de; font-size:11px; transition: background .15s;
+}
+.profile-quick-btn:active { background:#202b36; }
+.profile-quick-btn i { font-size:17px; color:#5288c1; }
+
+/* ---------- منوی تنظیمات (لیست ردیفی سبک تلگرام) ---------- */
+.settings-menu-list { background:#17212b; border-radius:12px; margin-bottom:15px; border:1px solid #242f3d; overflow:hidden; }
+.settings-menu-item {
+    display:flex; align-items:center; gap:12px; padding:13px 14px; cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,0.05); transition: background .15s;
+}
+.settings-menu-item:last-child { border-bottom:none; }
+.settings-menu-item:active { background:#202b36; }
+.settings-menu-icon {
+    width:34px; height:34px; border-radius:9px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px;
+}
+.settings-menu-texts { flex:1; overflow:hidden; }
+.settings-menu-title { font-size:14px; color:#fff; }
+.settings-menu-sub { font-size:11.5px; color:#7f91a4; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.settings-menu-item .fa-chevron-left { color:#4a5a6b; font-size:12px; }
+.settings-menu-item.danger .settings-menu-title { color:#e53935; }
+
+/* ردیف حساب کاربری بالای منوی تنظیمات، با آواتار و نام */
+.settings-account-row { display:flex; align-items:center; gap:14px; padding:16px 14px; background:#17212b; border-radius:12px; margin-bottom:15px; border:1px solid #242f3d; cursor:pointer; }
+.settings-account-row .profile-avatar { width:54px; height:54px; font-size:20px; }
+.settings-account-texts h4 { font-size:15px; margin-bottom:3px; }
+.settings-account-texts p { font-size:12px; color:#7f91a4; direction:ltr; text-align:right; }
+
+/* ---------- صفحه‌ی ویرایش اطلاعات ---------- */
+.edit-field-card { background:#17212b; border-radius:12px; margin-bottom:15px; border:1px solid #242f3d; overflow:hidden; }
+.edit-field-row { padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
+.edit-field-row:last-child { border-bottom:none; }
+.edit-field-row label { display:block; font-size:10.5px; color:#5288c1; margin-bottom:4px; }
+.edit-field-row input, .edit-field-row textarea {
+    width:100%; border:none; background:transparent; color:#fff; outline:none;
+    font-size:14.5px; font-family:inherit; padding:0; resize:vertical;
+}
+.edit-field-hint { font-size:11.5px; color:#7f91a4; padding: 4px 4px 14px; line-height:1.8; }
+.edit-avatar-center { display:flex; flex-direction:column; align-items:center; margin-bottom:18px; }
 
 .contact-profile-box { padding-top:22px; }
 .contact-profile-avatar-wrap { display:inline-block; margin-bottom:10px; }
@@ -395,195 +526,3 @@ html, body {
 .msg-avatar-small { object-fit: cover; }
 .msg-avatar-small-placeholder { background: #5288c1; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
 .message-row .message { align-self: auto; max-width: 100%; }
-
-/* ========== NEW PROFILE SCREEN STYLES ========== */
-.profile-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 15px 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    background: #0e1621;
-    -webkit-overflow-scrolling: touch;
-}
-
-.profile-header-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 20px 0;
-}
-
-.profile-avatar-wrapper-lg {
-    position: relative;
-    cursor: pointer;
-    margin-bottom: 16px;
-}
-
-.profile-avatar-xl {
-    width: 120px !important;
-    height: 120px !important;
-    font-size: 48px !important;
-    box-shadow: 0 4px 12px rgba(82, 136, 193, 0.3);
-}
-
-.avatar-edit-overlay-lg {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: #5288c1;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 14px;
-    border: 3px solid #0e1621;
-    color: white;
-}
-
-.profile-name-lg {
-    font-size: 20px;
-    font-weight: bold;
-    color: #fff;
-    margin: 0;
-    margin-bottom: 6px;
-}
-
-.profile-username-text {
-    font-size: 13px;
-    color: #7f91a4;
-    margin: 0;
-}
-
-/* Action Buttons Section */
-.profile-actions-section {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    padding: 15px 0;
-}
-
-.profile-action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    flex: 0 0 auto;
-}
-
-.action-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #17212b;
-    border: 1px solid #242f3d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #5288c1;
-    font-size: 18px;
-    transition: all 0.2s ease;
-}
-
-.profile-action-btn:active .action-icon {
-    transform: scale(0.95);
-    background: #242f3d;
-}
-
-.profile-action-btn span {
-    font-size: 11px;
-    color: #c7d3de;
-    text-align: center;
-}
-
-/* Profile Info Cards */
-.profile-info-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.profile-card-item {
-    background: #17212b;
-    border-radius: 10px;
-    padding: 14px 16px;
-    border: 1px solid #242f3d;
-    text-align: right;
-}
-
-.profile-card-item .profile-bio-text {
-    font-size: 13px;
-    color: #dce4ec;
-    line-height: 1.6;
-    margin: 0 0 8px;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.profile-card-item .user-id-text {
-    font-size: 13px;
-    color: #dce4ec;
-    margin: 0 0 8px;
-    direction: ltr;
-    unicode-bidi: plaintext;
-    text-align: right;
-}
-
-.profile-card-label {
-    font-size: 11px;
-    color: #5288c1;
-    font-weight: 500;
-    margin: 0;
-}
-
-#profile-groups-display {
-    min-height: 30px;
-    margin-bottom: 8px;
-}
-
-/* Edit Profile Button */
-.btn-edit-profile {
-    width: 100%;
-    padding: 12px;
-    background: #5288c1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    margin-top: 10px;
-}
-
-.btn-edit-profile:active {
-    opacity: 0.9;
-    transform: scale(0.98);
-}
-
-/* Profile Menu Modal */
-#profile-menu-modal {
-    z-index: 1001;
-}
-
-#profile-menu-modal .modal-box {
-    max-width: 280px;
-}
-
-#profile-menu-modal .modal-box button {
-    justify-content: flex-start;
-    padding: 11px 15px;
-}
-
-#profile-menu-modal .btn-danger {
-    background: #e53935;
-}
