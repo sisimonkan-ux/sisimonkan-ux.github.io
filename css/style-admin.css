@@ -8,6 +8,9 @@
 
 .user-list-item { background: #17212b; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; border: 1px solid #242f3d; }
 
+.btn-verify-on { background: #ad2b2b !important; }
+.btn-verify-off { background: #2b5278 !important; }
+
 /* در صورت نیاز به شخصی‌سازی بیشتر صفحه پنل مدیریت،
    فقط همین فایل را ویرایش کنید؛ پنل کاربری دست‌نخورده می‌ماند. */
 #admin-panel-screen .settings-container {

@@ -87,6 +87,7 @@ html, body {
 .reply-badge { color: #5288c1; font-size: 13px; }
 .muted-chat-icon { color: #7f91a4; font-size: 13px; }
 .verified-badge { color: #2AABEE; font-size: 13px; margin-right: 4px; }
+.verified-badge-red { color: #e53935; font-size: 13px; margin-right: 4px; }
 
 /* Chat Area */
 .messages-container {
