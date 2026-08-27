@@ -32,6 +32,7 @@ function completeRegister() {
         username: tempAuth.username,
         password: tempAuth.password,
         isAdmin: false,
+        isRedVerified: false,
         avatar: null
     };
 
@@ -370,14 +371,14 @@ function renderContactProfileModal(uid) {
     let data;
     if (uid === 'admin') {
         const adminData = users['admin'] || {};
-        data = { name: 'پشتیبانی مرکزی', family: '', userId: 'admin', avatar: adminData.avatar || null, bio: adminData.bio || '', isVerified: true };
+        data = { name: 'پشتیبانی مرکزی', family: '', userId: 'admin', avatar: adminData.avatar || null, bio: adminData.bio || '', isVerified: true, isRedVerified: false };
     } else {
         const u = users[uid] || {};
-        data = { name: u.name || uid, family: u.family || '', userId: u.userId || uid, avatar: u.avatar || null, bio: u.bio || '', isVerified: !!u.isAdmin };
+        data = { name: u.name || uid, family: u.family || '', userId: u.userId || uid, avatar: u.avatar || null, bio: u.bio || '', isVerified: !!u.isAdmin, isRedVerified: !!u.isRedVerified };
     }
 
     const fullName = `${data.name} ${data.family}`.trim() || uid;
-    const verifiedHtml = data.isVerified ? ' <i class="fa-solid fa-circle-check verified-badge"></i>' : '';
+    const verifiedHtml = verifiedBadgeHtml(data.isVerified, data.isRedVerified);
     document.getElementById('contact-profile-name').innerHTML = fullName + verifiedHtml;
     document.getElementById('contact-profile-id').innerText = '@' + data.userId;
 
@@ -471,7 +472,8 @@ function searchUser() {
     if (users[searchId] || searchId === 'admin') {
         const targetName = users[searchId] ? `${users[searchId].name} ${users[searchId].family}` : 'پشتیبانی مرکزی';
         const isVerified = searchId === 'admin' || (users[searchId] && users[searchId].isAdmin);
-        openChat(searchId, targetName, 'direct', isVerified);
+        const isRedVerified = users[searchId] && users[searchId].isRedVerified;
+        openChat(searchId, targetName, 'direct', isVerified, isRedVerified);
         document.getElementById('search-input').value = '';
         return;
     }
@@ -491,7 +493,7 @@ function searchUser() {
         if (data) {
             users[searchId] = data;
             localStorage.setItem('app_users_v6', JSON.stringify(users));
-            openChat(searchId, `${data.name} ${data.family}`, 'direct', !!data.isAdmin);
+            openChat(searchId, `${data.name} ${data.family}`, 'direct', !!data.isAdmin, !!data.isRedVerified);
             document.getElementById('search-input').value = '';
         } else {
             alert('کاربری با این آیدی یافت نشد!');

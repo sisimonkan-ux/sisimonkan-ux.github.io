@@ -29,7 +29,7 @@ function getAllChatsList() {
     hasConvWith.forEach(uId => {
         const u = users[uId];
         if (u && !list.find(c => c.id.toLowerCase() === uId)) {
-            list.push({ id: uId, title: `${u.name} ${u.family}`, type: 'direct', isVerified: false, avatar: u.avatar });
+            list.push({ id: uId, title: `${u.name} ${u.family}`, type: 'direct', isVerified: !!u.isAdmin, isRedVerified: !!u.isRedVerified, avatar: u.avatar });
         }
     });
     return list;
@@ -63,7 +63,7 @@ function renderChatList() {
         }
         badgesHtml += '</div>';
 
-        const verifiedHtml = chat.isVerified ? '<i class="fa-solid fa-circle-check verified-badge"></i>' : '';
+        const verifiedHtml = verifiedBadgeHtml(chat.isVerified, chat.isRedVerified);
 
         let avatarHtml = '';
         const customChatMeta = chatMetaData[chat.id.toLowerCase()];
@@ -100,7 +100,7 @@ function renderChatList() {
 
         const div = document.createElement('div');
         div.className = 'chat-item';
-        div.onclick = () => openChat(chat.id, chat.title, chat.type, chat.isVerified);
+        div.onclick = () => openChat(chat.id, chat.title, chat.type, chat.isVerified, chat.isRedVerified);
         div.innerHTML = `
             ${avatarHtml}
             <div class="details">
@@ -145,8 +145,8 @@ function closeChatOptionsMenu() {
     document.getElementById('chat-options-modal').classList.add('hidden');
 }
 
-function openChat(chatId, title, type, isVerified) {
-    currentChat = { id: chatId, title, type, isVerified };
+function openChat(chatId, title, type, isVerified, isRedVerified) {
+    currentChat = { id: chatId, title, type, isVerified, isRedVerified };
 
     const chatMsgs = messages.filter(m => filterMsgForUser(m));
 
@@ -172,7 +172,7 @@ function openChat(chatId, title, type, isVerified) {
         localStorage.setItem('app_reply_alerts_v6', JSON.stringify(replyAlerts));
     }
 
-    const verifiedHtml = isVerified ? ' <i class="fa-solid fa-circle-check verified-badge"></i>' : '';
+    const verifiedHtml = verifiedBadgeHtml(isVerified, isRedVerified);
     document.getElementById('current-chat-title').innerHTML = title + verifiedHtml;
     const subtitleEl = document.getElementById('current-chat-subtitle');
     subtitleEl.classList.remove('user-id-text');
@@ -216,7 +216,7 @@ function openChat(chatId, title, type, isVerified) {
         inputArea.style.display = 'none';
         lockedNotice.innerHTML = '<i class="fa fa-ban"></i> امکان ارسال پیام در این گفتگو وجود ندارد.';
         lockedNotice.classList.remove('hidden');
-    } else if (isLocked && !currentUser.isAdmin) {
+    } else if (isLocked && !currentUser.isAdmin && !currentUser.isRedVerified) {
         inputArea.style.display = 'none';
         lockedNotice.innerHTML = '<i class="fa fa-lock"></i> ارسال پیام در این گفتگو محدود شده است.';
         lockedNotice.classList.remove('hidden');
@@ -435,7 +435,7 @@ function uploadGroupOrChannelAvatar(event) {
         localStorage.setItem('app_chat_meta_v6', JSON.stringify(chatMetaData));
         alert('تصویر این بخش با موفقیت تغییر کرد!');
         closeChatOptionsMenu();
-        openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified);
+        openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
     });
 }
 
@@ -610,7 +610,7 @@ function toggleBlockUser(targetUserId) {
 
     localStorage.setItem('app_blocked_v6', JSON.stringify(blockedUsers));
     closeChatOptionsMenu();
-    openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified);
+    openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
 }
 
 function filterMsgForUser(m) {
@@ -748,7 +748,8 @@ function renderMessages(unreadStartIndex = -1) {
                 } else {
                     const senderObj = users[senderId] || { name: 'کاربر' };
                     const senderMsgCount = chatMsgs.filter(m2 => (m2.sender||'').toLowerCase() === senderId).length;
-                    senderNameHtml = `<div class="sender-name" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${senderObj.name} <span style="font-size:10px;color:#7f91a4;font-weight:normal;">${senderMsgCount} پیام</span></div>`;
+                    const senderBadgeHtml = verifiedBadgeHtml(false, senderObj.isRedVerified);
+                    senderNameHtml = `<div class="sender-name" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${senderObj.name}${senderBadgeHtml} <span style="font-size:10px;color:#7f91a4;font-weight:normal;">${senderMsgCount} پیام</span></div>`;
                     avatarHtml = senderObj.avatar
                         ? `<img src="${senderObj.avatar}" class="msg-avatar-small" onclick="event.stopPropagation(); goToUserChat('${senderId}')">`
                         : `<div class="msg-avatar-small-placeholder" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${(senderObj.name || '؟').charAt(0)}</div>`;
@@ -845,7 +846,7 @@ function goToUserChat(senderIdRaw) {
     }
     const u = users[senderId];
     if (!u) return;
-    openChat(u.userId, `${u.name} ${u.family || ''}`.trim(), 'direct', false);
+    openChat(u.userId, `${u.name} ${u.family || ''}`.trim(), 'direct', !!u.isAdmin, !!u.isRedVerified);
 }
 
 function startEditMessage(msgId, text) {

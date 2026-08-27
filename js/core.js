@@ -151,6 +151,17 @@ db.ref('app_users_v6').on('value', (snapshot) => {
             if (authScreen) authScreen.classList.remove('hidden');
             if (typeof switchToLogin === 'function') switchToLogin();
             alert(kickMessage);
+        } else if (freshUser) {
+            /* بدون نیاز به خروج/ورود دوباره، وضعیت تیک وریفای قرمز کاربر را
+               همین الان با نسخه‌ی سرور همگام می‌کنیم تا اگر مدیریت تازه
+               این تیک را داده/گرفته، بلافاصله روی گفتگوی قفل‌شده اثر بگذارد. */
+            if (currentUser.isRedVerified !== !!freshUser.isRedVerified) {
+                currentUser.isRedVerified = !!freshUser.isRedVerified;
+                persistSession();
+                if (currentChat) {
+                    openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
+                }
+            }
         }
     }
 });
@@ -168,7 +179,7 @@ db.ref('app_chat_locks_v6').on('value', (snapshot) => {
         chatLockStatus = data;
         localStorage.setItem('app_chat_locks_v6', JSON.stringify(chatLockStatus));
         if (currentChat) {
-            openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified);
+            openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
         }
     }
 });
@@ -230,6 +241,17 @@ function formatRecordTime(totalSeconds) {
 
 function getSavedMessagesChatId() {
     return `saved_${currentUser.userId.toLowerCase()}`;
+}
+
+/* ---------- تیک وریفای ----------
+   آبی (verified-badge): مخصوص ادمین/چت‌های رسمی پشتیبانی
+   قرمز (verified-badge-red): تیکی که مدیریت می‌تواند به‌صورت دستی
+   به هر کاربر عادی بدهد؛ این کاربران هم مثل ادمین اجازه‌ی ارسال
+   پیام در گروه/کانال قفل‌شده را دارند. */
+function verifiedBadgeHtml(isVerified, isRedVerified) {
+    if (isVerified) return ' <i class="fa-solid fa-circle-check verified-badge" title="حساب رسمی"></i>';
+    if (isRedVerified) return ' <i class="fa-solid fa-circle-check verified-badge-red" title="حساب وریفای‌شده"></i>';
+    return '';
 }
 
 function getStaticChats() {

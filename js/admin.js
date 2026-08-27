@@ -20,6 +20,8 @@ function openAdminPanel() {
             const suspendBadge = isSuspended
                 ? `<div style="font-size:10px; color:#ffb84d; margin-top:6px;"><i class="fa fa-clock"></i> تعلیق تا ${new Date(u.suspendedUntil).toLocaleDateString('fa-IR')}</div>`
                 : '';
+            const isRedVerified = !!u.isRedVerified;
+            const verifyBadgeHtml = isRedVerified ? ' <i class="fa-solid fa-circle-check verified-badge-red"></i>' : '';
 
             const div = document.createElement('div');
             div.className = 'user-list-item';
@@ -30,7 +32,7 @@ function openAdminPanel() {
                     <div style="display:flex; align-items:center;">
                         ${avatarHtml}
                         <div>
-                            <b>${u.name} ${u.family}</b>
+                            <b>${u.name} ${u.family}${verifyBadgeHtml}</b>
                             <div style="font-size:11px; color:#6ab0ff;">@${u.userId}</div>
                         </div>
                     </div>
@@ -46,6 +48,11 @@ function openAdminPanel() {
                     <button class="modal-btn btn-secondary" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminSuspendUser('${u.userId}')"><i class="fa fa-clock"></i> تعلیق</button>
                     ${isSuspended ? `<button class="modal-btn btn-secondary" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminUnsuspendUser('${u.userId}')"><i class="fa fa-unlock"></i> لغو تعلیق</button>` : ''}
                     <button class="modal-btn btn-danger" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminDeleteUser('${u.userId}')"><i class="fa fa-trash"></i> حذف اکانت</button>
+                </div>
+                <div style="display:flex; gap:6px; margin-top:6px;">
+                    <button class="modal-btn ${isRedVerified ? 'btn-verify-on' : 'btn-verify-off'}" style="flex:1; padding:6px; font-size:11px;" onclick="adminToggleVerify('${u.userId}')">
+                        <i class="fa-solid fa-circle-check"></i> ${isRedVerified ? 'حذف تیک وریفای قرمز' : 'دادن تیک وریفای قرمز'}
+                    </button>
                 </div>
             `;
             listContainer.appendChild(div);
@@ -105,6 +112,20 @@ function adminUnsuspendUser(userId) {
     openAdminPanel();
 }
 
+/* ---------- دادن/گرفتن تیک وریفای قرمز ----------
+   کاربرانی که این تیک را داشته باشند، مثل ادمین اجازه‌ی ارسال پیام
+   در گروه/کانالی که قفل شده را هم دارند (بدون نیاز به دسترسی مدیریت). */
+function adminToggleVerify(userId) {
+    const uid = userId.toLowerCase();
+    if (!users[uid]) return;
+
+    users[uid].isRedVerified = !users[uid].isRedVerified;
+    saveUsers(uid);
+
+    alert(users[uid].isRedVerified ? `تیک وریفای قرمز به @${userId} داده شد.` : `تیک وریفای قرمز از @${userId} گرفته شد.`);
+    openAdminPanel();
+}
+
 function toggleChatLock(chatId) {
     chatLockStatus[chatId] = !chatLockStatus[chatId];
     localStorage.setItem('app_chat_locks_v6', JSON.stringify(chatLockStatus));
@@ -112,7 +133,7 @@ function toggleChatLock(chatId) {
 
     alert(chatLockStatus[chatId] ? 'گفتگو قفل شد!' : 'گفتگو باز شد!');
     closeChatOptionsMenu();
-    openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified);
+    openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
 }
 
 window.openAdminPanel = openAdminPanel;
@@ -121,3 +142,4 @@ window.toggleChatLock = toggleChatLock;
 window.adminDeleteUser = adminDeleteUser;
 window.adminSuspendUser = adminSuspendUser;
 window.adminUnsuspendUser = adminUnsuspendUser;
+window.adminToggleVerify = adminToggleVerify;
