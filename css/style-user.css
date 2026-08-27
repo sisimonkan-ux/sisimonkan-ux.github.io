@@ -138,70 +138,12 @@ html, body {
     background: #000;
 }
 
-/* ===== TELEGRAM STYLE VOICE MESSAGE BUTTON ===== */
-.voice-message-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-    background: linear-gradient(135deg, #3a6a9e 0%, #2b5278 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    cursor: pointer;
-    user-select: none;
-    margin: 5px 0;
-    min-width: 120px;
-    max-width: 160px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.voice-message-button:active {
-    transform: scale(0.96);
-}
-
-.voice-message-button.playing {
-    background: linear-gradient(135deg, #5288c1 0%, #3a6a9e 100%);
-    box-shadow: 0 0 12px rgba(82, 136, 193, 0.4);
-}
-
-.voice-play-icon {
-    font-size: 16px;
-    color: #fff;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-}
-
-.voice-message-button.playing .voice-play-icon {
-    color: #fff;
-}
-
-.voice-duration {
-    font-size: 13px;
-    color: #fff;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    font-family: 'Courier New', monospace;
-    flex-shrink: 0;
-}
-
-.message.my-msg .voice-message-button {
-    background: linear-gradient(135deg, #2b5278 0%, #1e3f5a 100%);
-}
-
-.message.my-msg .voice-message-button.playing {
-    background: linear-gradient(135deg, #3a6a9e 0%, #2b5278 100%);
-    box-shadow: 0 0 12px rgba(82, 136, 193, 0.5);
-}
-
 .message-voice {
-    display: none !important;
+    max-width: 220px;
+    width: 100%;
+    margin: 5px 0;
+    display: block;
+    height: 36px;
 }
 
 .sender-name { font-size: 11px; color: #e5824b; margin-bottom: 4px; font-weight: bold; display: flex; align-items: center; gap: 3px; width: fit-content; cursor: pointer; }
@@ -213,13 +155,84 @@ html, body {
 .reaction-chip { font-size: 11px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
 .replied-box { background: rgba(0,0,0,0.25); padding: 5px; border-right: 3px solid #5288c1; font-size: 12px; margin-bottom: 5px; border-radius: 3px; }
 
+/* ===== وضعیت پیام (تیک‌ها) ===== */
+.msg-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #7f91a4;
+    direction: ltr;
+}
+.msg-time {
+    font-size: 10px;
+    color: #7f91a4;
+}
+.msg-status {
+    font-size: 13px;
+    margin-right: 2px;
+    display: inline-flex;
+    align-items: center;
+}
+.msg-status.sent { 
+    color: #7f91a4; 
+}
+.msg-status.delivered { 
+    color: #7f91a4; 
+}
+.msg-status.read { 
+    color: #4fc3f7; 
+}
+
+.message.my-msg .msg-footer {
+    justify-content: flex-end;
+}
+.message:not(.my-msg) .msg-footer {
+    justify-content: flex-start;
+}
+
+/* ===== انیمیشن تیک‌ها ===== */
+@keyframes tickAppear {
+    0% { opacity: 0; transform: scale(0.5); }
+    100% { opacity: 1; transform: scale(1); }
+}
+.msg-status {
+    animation: tickAppear 0.2s ease;
+}
+
+/* ===== دکمه پیام صوتی ===== */
+.voice-message-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #2b5278;
+    padding: 6px 14px 6px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin: 4px 0;
+    transition: background 0.3s;
+    min-width: 80px;
+}
+.voice-message-button:hover {
+    background: #3a6a90;
+}
+.voice-message-button.playing {
+    background: #4fc3f7;
+}
+.voice-play-icon {
+    font-size: 14px;
+    color: #fff;
+}
+.voice-duration {
+    font-size: 12px;
+    color: #fff;
+    font-weight: 500;
+}
+
 .chat-bottom-wrapper {
     background: #0e1621;
-    /* توجه: فاصله‌ی امن پایین صفحه (safe-area-inset-bottom) همین‌جا اضافه
-       نمی‌شود چون خود .screen (والد این عنصر) از قبل این فاصله را در
-       padding-bottom خودش رزرو کرده؛ اضافه کردن دوباره‌ی env() اینجا باعث
-       جمع شدن دو برابری آن و ایجاد یک فاصله‌ی خالی بزرگ زیر کادر پیام در
-       مرورگرهایی می‌شد که مقدار safe-area-inset-bottom را بزرگ گزارش می‌کنند. */
     padding: 8px 8px 10px 8px;
     flex-shrink: 0;
     width: 100%;
@@ -240,8 +253,7 @@ html, body {
 .chat-locked-notice { background: #242f3d; color: #e53935; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; }
 .reply-preview { padding: 6px 12px; background: #17212b; display: flex; justify-content: space-between; border-top: 1px solid #5288c1; font-size: 12px; border-radius: 8px 8px 0 0; margin-bottom: 4px; }
 
-/* Shared preview bar for image / video / voice, each with its own explicit send button
-   so the send action is never hidden or pushed off screen. */
+/* Shared preview bar for image / video / voice */
 .media-preview-bar {
     background: #17212b;
     border-top: 1px solid #5288c1;
