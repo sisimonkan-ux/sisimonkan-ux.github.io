@@ -128,6 +128,19 @@ db.ref('app_users_v6').on('value', (snapshot) => {
     localStorage.setItem('app_users_v6', JSON.stringify(users));
     renderChatList();
 
+    /* اگر همین الان طرفِ پیوی باز شده (چه در حین ارسال پیام چه نه) توسط
+       مدیریت حذف شده باشد، بلافاصله نوار ارسال پیام مخفی و پیام «حساب
+       حذف شده» نمایش داده می‌شود، بدون نیاز به خروج از گفتگو و ورود دوباره. */
+    if (currentChat && typeof isDeletedDirectChat === 'function' && isDeletedDirectChat(currentChat.id, currentChat.type)) {
+        const inputArea = document.getElementById('input-area');
+        const lockedNotice = document.getElementById('locked-notice');
+        if (inputArea && lockedNotice) {
+            inputArea.style.display = 'none';
+            lockedNotice.innerHTML = '<i class="fa fa-user-slash"></i> این حساب کاربری حذف شده است. امکان ارسال پیام وجود ندارد.';
+            lockedNotice.classList.remove('hidden');
+        }
+    }
+
     /* اگر همین الان یک کاربر عادی داخل برنامه لاگین است و مدیریت
        اکانتش را حذف یا تعلیق کرده باشد، بلافاصله (بدون نیاز به رفرش
        یا خروج/ورود دستی) از حساب خارجش می‌کنیم. */

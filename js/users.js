@@ -25,6 +25,8 @@ function completeRegister() {
     const userId = document.getElementById('reg-userid').value.trim().toLowerCase();
 
     if (!name || !userId) return alert('اطلاعات را کامل کنید');
+    if (userId.includes('@')) return alert('در آیدی نباید از علامت @ استفاده کنید. آیدی را بدون @ وارد کنید.');
+    if (userId.length < 5) return alert('آیدی باید حداقل ۵ حرف باشد.');
     if (users[userId] || userId === 'admin') return alert('این آیدی قبلاً ثبت شده است!');
 
     users[userId] = {
@@ -285,6 +287,11 @@ function saveSettings() {
 
     if (!name || !newUserId || !newUsername || !newPassword) {
         return alert('تمام فیلدها را پر کنید');
+    }
+
+    if (!currentUser.isAdmin) {
+        if (newUserId.includes('@')) return alert('در آیدی نباید از علامت @ استفاده کنید. آیدی را بدون @ وارد کنید.');
+        if (newUserId.length < 5) return alert('آیدی باید حداقل ۵ حرف باشد.');
     }
 
     if (currentUser.isAdmin) {

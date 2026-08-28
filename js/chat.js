@@ -12,6 +12,16 @@ function switchTab(tab, element) {
     renderChatList();
 }
 
+/* بررسی این‌که آیا پیوی مقابل، حساب کاربری‌ای است که دیگر وجود ندارد
+   (توسط مدیریت حذف شده یا اصلاً هیچ‌وقت وجود نداشته). پشتیبانی مرکزی
+   و پیام‌های ذخیره‌شده هیچ‌وقت «حذف شده» حساب نمی‌شوند. */
+function isDeletedDirectChat(chatId, type) {
+    if (type !== 'direct') return false;
+    const cid = (chatId || '').toLowerCase();
+    if (cid === 'admin' || cid === getSavedMessagesChatId()) return false;
+    return !users[cid];
+}
+
 function getAllChatsList() {
     let list = getStaticChats().filter(chat => {
         if (currentUser.isAdmin && chat.id === 'admin') return false;
@@ -208,7 +218,13 @@ function openChat(chatId, title, type, isVerified, isRedVerified) {
     const myBlockedList = blockedUsers[currentUser.userId.toLowerCase()] || [];
     const isTargetBlockedByMe = myBlockedList.includes(chatId.toLowerCase());
 
-    if (isTargetBlockedByMe) {
+    const isDeletedAccount = isDeletedDirectChat(chatId, type);
+
+    if (isDeletedAccount) {
+        inputArea.style.display = 'none';
+        lockedNotice.innerHTML = '<i class="fa fa-user-slash"></i> این حساب کاربری حذف شده است. امکان ارسال پیام وجود ندارد.';
+        lockedNotice.classList.remove('hidden');
+    } else if (isTargetBlockedByMe) {
         inputArea.style.display = 'none';
         lockedNotice.innerHTML = '<i class="fa fa-ban"></i> شما این کاربر را بلاک کرده‌اید و نمی‌توانید به او پیام دهید.';
         lockedNotice.classList.remove('hidden');
@@ -767,7 +783,7 @@ function renderMessages(unreadStartIndex = -1) {
             const parent = messages.find(m => m.id === msg.replyTo);
             if (parent) {
                 const pText = parent.text ? parent.text.substring(0, 30) : (parent.video ? '🎥 ویدیو' : (parent.voice ? '🎙 پیام صوتی' : '📷 تصویر'));
-                replyHtml = `<div class="replied-box"><i class="fa fa-reply" style="font-size:10px; margin-left:3px;"></i> ${pText}...</div>`;
+                replyHtml = `<div class="replied-box" onclick="event.stopPropagation(); scrollToMessage(${msg.replyTo})"><i class="fa fa-reply" style="font-size:10px; margin-left:3px;"></i> ${pText}...</div>`;
             }
         }
 
@@ -834,6 +850,19 @@ function renderMessages(unreadStartIndex = -1) {
         }
     });
     container.scrollTop = container.scrollHeight;
+}
+
+/* کلیک روی باکس ریپلای داخل یک پیام: پیام اصلی را پیدا کرده و به آن اسکرول
+   می‌کند و برای چند لحظه هایلایتش می‌کند تا راحت پیدا شود (مثل تلگرام). */
+function scrollToMessage(msgId) {
+    const el = document.getElementById('msg-' + msgId);
+    if (!el) {
+        alert('پیام اصلی در دسترس نیست (حذف شده است).');
+        return;
+    }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('highlight-flash');
+    setTimeout(() => el.classList.remove('highlight-flash'), 1200);
 }
 
 function goToUserChat(senderIdRaw) {
@@ -1106,3 +1135,5 @@ window.executeDelete = executeDelete;
 window.executeForward = executeForward;
 window.closeChat = closeChat;
 window.goToUserChat = goToUserChat;
+window.scrollToMessage = scrollToMessage;
+window.isDeletedDirectChat = isDeletedDirectChat;
