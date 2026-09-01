@@ -1,0 +1,3267 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title> چت </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- CSS پنل کاربری -->
+    <style>
+/* =========================================================
+   style-user.css
+   استایل‌های پنل کاربری: ورود/ثبت‌نام، لیست چت‌ها، صفحه چت،
+   تنظیمات، پروفایل و مودال‌های عمومی
+   ========================================================= */
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, sans-serif; touch-action: manipulation; }
+
+html, body {
+    height: 100%;
+    width: 100%;
+    background-color: #0e1621;
+    color: #fff;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.hidden { display: none !important; }
+
+.screen {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Auth Screen */
+#auth-screen { justify-content: center; align-items: center; background: #17212b; width: 100%; position: relative; padding-top: calc(28px + env(safe-area-inset-top, 0px)); }
+.auth-card { background: #242f3d; padding: 25px; border-radius: 12px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+.auth-card input { width: 100%; padding: 11px; margin: 8px 0; border-radius: 6px; border: 1px solid #17212b; background: #0e1621; color: #fff; text-align: center; outline: none; }
+.auth-card button { width: 100%; padding: 11px; background: #5288c1; border: none; color: white; border-radius: 6px; margin-top: 10px; cursor: pointer; font-weight: bold; }
+
+/* Header */
+.header { padding: 12px 15px; padding-top: calc(52px + env(safe-area-inset-top, 0px)); background: #242f3d; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #17212b; flex-shrink: 0; position: relative; }
+.header-title { display: flex; align-items: center; gap: 10px; font-size: 16px; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn-more-options {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 50%;
+}
+.btn-more-options:hover { background: rgba(255,255,255,0.1); }
+
+.search-box { display: flex; margin: 10px 15px; flex-shrink: 0; }
+.search-box input { flex: 1; padding: 9px 12px; border: none; background: #17212b; color: #fff; border-radius: 0 6px 6px 0; outline: none; font-size: 13px; }
+.search-box button { padding: 9px 14px; background: #5288c1; border: none; color: #fff; border-radius: 6px 0 0 6px; cursor: pointer; }
+
+/* Tabs */
+.tabs { display: flex; background: #242f3d; border-bottom: 1px solid #0e1621; flex-shrink: 0; }
+.tab-btn { flex: 1; padding: 10px 2px; text-align: center; font-size: 12px; cursor: pointer; color: #7f91a4; border-bottom: 2px solid transparent; }
+.tab-btn.active { color: #5288c1; border-bottom-color: #5288c1; font-weight: bold; }
+
+.chat-list { flex: 1; overflow-y: auto; }
+.chat-item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #17212b; position: relative; }
+.chat-item:hover { background: #202b36; }
+
+/* Avatar Styles */
+.avatar-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; margin-left: 12px; flex-shrink: 0; }
+.avatar-placeholder { width: 42px; height: 42px; border-radius: 50%; background: #5288c1; display: flex; justify-content: center; align-items: center; margin-left: 12px; color: white; font-size: 18px; font-weight: bold; flex-shrink: 0; }
+
+.chat-item .details { flex: 1; overflow: hidden; }
+.chat-item .details h4 { font-size: 14px; color: #fff; display: flex; align-items: center; gap: 5px; }
+.chat-item .details p { font-size: 12px; color: #7f91a4; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Badges */
+.badge-container { display: flex; gap: 6px; align-items: center; }
+.unread-badge { background: #5288c1; color: white; border-radius: 50%; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0 5px; font-size: 11px; font-weight: bold; }
+.unread-separator { text-align: center; margin: 10px 0; position: relative; }
+.unread-separator::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e53935; opacity: 0.4; }
+.unread-separator span { background: #182533; padding: 2px 10px; font-size: 11px; color: #e53935; border-radius: 10px; border: 1px solid #e53935; position: relative; z-index: 1; }
+.reaction-badge { background: #e53935; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; }
+.reply-badge { color: #5288c1; font-size: 13px; }
+.muted-chat-icon { color: #7f91a4; font-size: 13px; }
+.verified-badge { color: #2AABEE; font-size: 13px; margin-right: 4px; }
+.verified-badge-red { color: #e53935; font-size: 13px; margin-right: 4px; }
+
+/* Chat Area */
+.messages-container {
+    flex: 1;
+    min-height: 0;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Message Box */
+.message {
+    max-width: 80%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #182533;
+    color: #fff;
+    align-self: flex-start;
+    position: relative;
+    font-size: 14px;
+    word-break: break-word;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+}
+.message:active { opacity: 0.8; }
+.message.my-msg { background: #2b5278; align-self: flex-end; }
+
+@keyframes highlightFlash {
+    0% { box-shadow: 0 0 0 2px #5288c1; background-color: rgba(82,136,193,0.35); }
+    100% { box-shadow: 0 0 0 0 rgba(82,136,193,0); background-color: inherit; }
+}
+.highlight-flash { animation: highlightFlash 1.2s ease-out; }
+
+.message-img {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 8px;
+    margin: 5px 0;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.message-video {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 8px;
+    margin: 5px 0;
+    display: block;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: #000;
+}
+
+.message-voice {
+    max-width: 220px;
+    width: 100%;
+    margin: 5px 0;
+    display: block;
+    height: 36px;
+}
+
+.voice-player { display:flex; align-items:center; gap:8px; max-width:220px; width:100%; margin:5px 0; background: rgba(0,0,0,0.18); border-radius:20px; padding:6px 10px; box-sizing:border-box; }
+.voice-play-btn { flex-shrink:0; width:28px; height:28px; border-radius:50%; border:none; background:#5288c1; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; padding:0; }
+.voice-play-btn i { position:relative; right:-1px; }
+.voice-progress-wrap { flex:1; display:flex; align-items:center; gap:6px; min-width:0; }
+.voice-progress-bar { flex:1; height:4px; background: rgba(255,255,255,0.2); border-radius:2px; overflow:hidden; }
+.voice-progress-fill { height:100%; width:0%; background:#5288c1; border-radius:2px; }
+.voice-time { font-size:10px; color:#b9c6d3; flex-shrink:0; min-width:34px; text-align:left; direction:ltr; }
+
+.sender-name { font-size: 11px; color: #e5824b; margin-bottom: 4px; font-weight: bold; display: flex; align-items: center; gap: 3px; width: fit-content; cursor: pointer; }
+.forwarded-header { font-size: 11px; color: #6ab0ff; font-style: italic; margin-bottom: 5px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 3px; }
+.edited-tag { font-size: 10px; color: #aaa; margin-right: 5px; font-style: italic; }
+.mention-link { color: #6ab0ff; font-weight: bold; cursor: pointer; }
+.mention-link:active { opacity: 0.7; }
+
+.reactions-container { margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap; }
+.reaction-chip { font-size: 11px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+.replied-box { background: rgba(0,0,0,0.25); padding: 5px; border-right: 3px solid #5288c1; font-size: 12px; margin-bottom: 5px; border-radius: 3px; cursor: pointer; }
+
+.chat-bottom-wrapper {
+    background: #0e1621;
+    /* توجه: فاصله‌ی امن پایین صفحه (safe-area-inset-bottom) همین‌جا اضافه
+       نمی‌شود چون خود .screen (والد این عنصر) از قبل این فاصله را در
+       padding-bottom خودش رزرو کرده؛ اضافه کردن دوباره‌ی env() اینجا باعث
+       جمع شدن دو برابری آن و ایجاد یک فاصله‌ی خالی بزرگ زیر کادر پیام در
+       مرورگرهایی می‌شد که مقدار safe-area-inset-bottom را بزرگ گزارش می‌کنند. */
+    padding: 8px 8px 10px 8px;
+    flex-shrink: 0;
+    width: 100%;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.chat-input-area { padding: 6px 10px; background: #242f3d; display: flex; gap: 6px; align-items: center; border-radius: 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); }
+.chat-input-area input[type="text"] { flex: 1; min-width: 0; padding: 10px 12px; border: none; background: #0e1621; color: #fff; border-radius: 8px; outline: none; font-size: 14px; unicode-bidi: plaintext; }
+.chat-input-area button { flex-shrink: 0; padding: 10px 12px; background: #5288c1; border: none; color: #fff; border-radius: 8px; cursor: pointer; font-size: 15px; }
+
+.btn-voice-record { background: #2b5278 !important; }
+.btn-voice-record.recording-active { background: #e53935 !important; }
+
+.btn-attach-img { background: #2b5278 !important; }
+.btn-attach-img.recording-active { background: #e53935 !important; }
+
+.chat-locked-notice { background: #242f3d; color: #e53935; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; }
+
+/* دکمه «شروع ربات» (مثل تلگرام) */
+.start-bot-bar { display: flex; justify-content: center; padding: 4px 0; }
+.btn-start-bot {
+    background: #5288c1;
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    padding: 13px 34px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 10px rgba(82,136,193,0.35);
+    transition: opacity 0.15s, transform 0.1s;
+}
+.btn-start-bot:active { opacity: 0.8; transform: scale(0.98); }
+
+/* کارت پیشنهاد (سمت مدیریت) */
+.message.suggestion-wrapper { background: transparent; padding: 0; max-width: 92%; }
+.suggestion-card {
+    background: #182533;
+    border: 1px solid rgba(82,136,193,0.4);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+}
+.suggestion-title { font-size: 12px; color: #e5824b; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.suggestion-text { color: #fff; font-size: 14px; line-height: 1.7; word-break: break-word; margin-bottom: 8px; }
+.suggestion-actions { display: flex; gap: 8px; }
+.suggestion-actions .modal-btn { margin: 0; padding: 8px; font-size: 12px; }
+.suggestion-status { font-size: 12px; font-weight: bold; padding: 6px 8px; border-radius: 6px; display: flex; align-items: center; gap: 5px; width: fit-content; }
+.suggestion-status.suggestion-approved { color: #4caf50; background: rgba(76,175,80,0.12); }
+.suggestion-status.suggestion-rejected { color: #e53935; background: rgba(229,57,53,0.12); }
+.suggestion-status.suggestion-pending { color: #b9c6d3; background: rgba(255,255,255,0.06); margin-top: 4px; }
+.reply-preview { padding: 6px 12px; background: #17212b; display: flex; justify-content: space-between; border-top: 1px solid #5288c1; font-size: 12px; border-radius: 8px 8px 0 0; margin-bottom: 4px; }
+
+/* Shared preview bar for image / video / voice, each with its own explicit send button
+   so the send action is never hidden or pushed off screen. */
+.media-preview-bar {
+    background: #17212b;
+    border-top: 1px solid #5288c1;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    overflow: hidden;
+}
+.media-preview-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+}
+.media-preview-visual {
+    max-width: 220px;
+    max-height: 160px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    object-fit: contain;
+    background: #000;
+    flex-shrink: 0;
+}
+.media-preview-audio { flex: 1; height: 36px; }
+.btn-media-cancel { cursor: pointer; color: #e53935; font-size: 16px; margin-right: auto; padding: 6px; }
+.media-preview-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #0e1621;
+}
+.media-preview-hint { font-size: 11px; color: #7f91a4; }
+.btn-media-send {
+    background: #5288c1;
+    border: none;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-right: auto;
+}
+
+.mic-record-indicator {
+    padding: 8px 12px;
+    background: #17212b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e53935;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 4px;
+    color: #fff;
+    font-size: 13px;
+}
+.rec-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e53935;
+    display: inline-block;
+    animation: rec-blink 1s infinite;
+}
+@keyframes rec-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+.rec-controls { display: flex; align-items: center; }
+.btn-cancel-record, .btn-stop-record {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-right: 6px;
+    cursor: pointer;
+    color: #fff;
+}
+.btn-cancel-record { background: #3a4a5c; }
+.btn-stop-record { background: #5288c1; }
+
+/* Settings UI */
+.settings-container { padding: 15px; flex: 1; overflow-y: auto; background: #0e1621; }
+.profile-card { background: #17212b; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border: 1px solid #242f3d; position: relative; }
+
+.profile-avatar-wrapper { position: relative; cursor: pointer; }
+.profile-avatar { width: 60px; height: 60px; background: #5288c1; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; color: white; object-fit: cover; }
+.avatar-edit-overlay { position: absolute; bottom: 0; right: 0; background: #5288c1; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 11px; border: 2px solid #17212b; }
+
+.profile-info h3 { font-size: 15px; margin-bottom: 3px; }
+.profile-info p { font-size: 12px; color: #7f91a4; }
+
+.settings-group { background: #17212b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #242f3d; }
+.settings-group h4 { color: #5288c1; margin-bottom: 12px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.settings-group label { display: block; font-size: 11px; color: #7f91a4; margin-top: 10px; margin-bottom: 4px; }
+.settings-group input, .settings-group textarea { width: 100%; padding: 9px 12px; background: #0e1621; border: 1px solid #242f3d; border-radius: 6px; color: #fff; outline: none; font-size: 13px; font-family: inherit; resize: vertical; }
+.profile-bio-text { font-size: 13px; color: #dce4ec; line-height: 1.6; text-align: right; white-space: pre-wrap; word-break: break-word; }
+.profile-bio-empty { color: #7f91a4; font-style: italic; }
+/* برای متن‌هایی مثل @Mostafa: چون صفحه RTL است، بدون این تنظیم مرورگر کاراکتر @
+   را طبق جهت پاراگراف (راست‌به‌چپ) می‌چیند و به‌صورت معکوس "Mostafa@" نمایش داده
+   می‌شد. با ست‌کردن جهت خود همین المان روی ltr (و راست‌چین نگه‌داشتنش با text-align)
+   متن هم مثل تلگرام همیشه به‌شکل صحیح "@Mostafa" نمایش داده می‌شود. */
+.user-id-text { direction: ltr; unicode-bidi: plaintext; text-align: right; }
+
+/* ---------- کارت پروفایل (خود کاربر و مخاطب) به سبک تلگرام ---------- */
+.profile-avatar-lg { width: 88px !important; height: 88px !important; font-size: 32px !important; }
+
+.own-profile-header { display:flex; flex-direction:column; align-items:center; margin-bottom:16px; text-align:center; }
+.own-profile-name { margin-top:10px; margin-bottom:0; font-size:17px; }
+
+.contact-profile-box { padding-top:22px; }
+.contact-profile-avatar-wrap { display:inline-block; margin-bottom:10px; }
+.contact-profile-name { margin-bottom:4px; font-size:18px; }
+
+.contact-profile-actions { display:flex; justify-content:center; gap:14px; margin:14px 0 18px; }
+.contact-action-btn { display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; flex:1; max-width:80px; }
+.contact-action-icon { width:46px; height:46px; border-radius:50%; background:#17212b; color:#5288c1; display:flex; align-items:center; justify-content:center; font-size:17px; border:1px solid #242f3d; }
+.contact-action-btn span { font-size:11px; color:#c7d3de; }
+.contact-action-btn.muted .contact-action-icon { color:#e5824b; }
+
+.contact-profile-card { text-align:right; background:#17212b; border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+.contact-profile-field-label { font-size:11px; color:#5288c1; margin:2px 0 12px; }
+.contact-profile-field-label:last-child { margin-bottom:0; }
+.contact-profile-divider { height:1px; background:rgba(255,255,255,0.06); margin-bottom:12px; }
+
+.btn-save-settings { width: 100%; padding: 11px; background: #5288c1; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 13px; }
+.btn-admin-menu { width: 100%; padding: 11px; background: #e5824b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
+
+/* Modals */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-box { background: #242f3d; width: 90%; max-width: 360px; max-height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; padding: 15px; text-align: center; }
+.modal-header { padding: 12px 15px; background: #17212b; display: flex; justify-content: space-between; align-items: center; margin: -15px -15px 15px -15px; }
+.modal-body { flex: 1; overflow-y: auto; }
+.modal-btn { width: 100%; padding: 11px; margin: 4px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-danger { background: #e53935; color: white; }
+.btn-secondary { background: #2b5278; color: white; }
+.btn-cancel { background: #3a4b5d; color: white; margin-top: 8px; }
+
+.quick-reactions { display: flex; justify-content: space-around; background: #17212b; padding: 8px; border-radius: 8px; margin-bottom: 12px; }
+.quick-reaction-btn { font-size: 20px; cursor: pointer; transition: transform 0.1s; }
+.quick-reaction-btn:active { transform: scale(1.3); }
+
+#image-viewer-modal { background: rgba(0, 0, 0, 0.9); flex-direction: column; justify-content: center; align-items: center; }
+#image-viewer-modal img { max-width: 95vw; max-height: 85vh; object-fit: contain; border-radius: 8px; }
+.close-img-viewer { position: absolute; top: 20px; right: 20px; color: white; font-size: 28px; cursor: pointer; }
+
+.reactions-info-box {
+    background: #17212b;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+    text-align: right;
+    max-height: 120px;
+    overflow-y: auto;
+    border: 1px solid #0e1621;
+}
+.reactions-info-title { font-size: 11px; color: #5288c1; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.reaction-user-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+.reaction-user-row:last-child { border-bottom: none; }
+
+.btn-logout { background: #e53935; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+.btn-back { background: transparent; color: #5288c1; border: none; font-size: 18px; cursor: pointer; margin-left: 10px; }
+
+/* Bottom Navigation */
+.bottom-nav {
+    display: flex;
+    flex-shrink: 0;
+    background: #242f3d;
+    border-top: 1px solid #17212b;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+}
+.bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 2px 7px;
+    cursor: pointer;
+    color: #7f91a4;
+    font-size: 10px;
+    -webkit-tap-highlight-color: transparent;
+}
+.bottom-nav-item i { font-size: 19px; }
+.bottom-nav-item.active { color: #5288c1; }
+
+#main-screen .chat-list,
+#settings-screen .settings-container,
+#profile-screen .settings-container {
+    padding-bottom: 15px;
+}
+
+.message-row { display: flex; align-items: flex-end; gap: 6px; max-width: 85%; align-self: flex-start; }
+.msg-avatar-small, .msg-avatar-small-placeholder { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; cursor: pointer; margin-bottom: 2px; }
+.msg-avatar-small { object-fit: cover; }
+.msg-avatar-small-placeholder { background: #5288c1; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
+.message-row .message { align-self: auto; max-width: 100%; }
+
+</style>
+    <!-- CSS جدا برای پنل مدیریت -->
+    <style>
+/* =========================================================
+   style-admin.css
+   استایل‌های مخصوص پنل مدیریت (جدا از پنل کاربری)
+   ========================================================= */
+
+.stat-box { background: #242f3d; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid #5288c1; }
+.stat-box h2 { color: #6ab0ff; font-size: 28px; margin-top: 5px; }
+
+.user-list-item { background: #17212b; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; border: 1px solid #242f3d; }
+
+.btn-verify-on { background: #ad2b2b !important; }
+.btn-verify-off { background: #2b5278 !important; }
+
+/* در صورت نیاز به شخصی‌سازی بیشتر صفحه پنل مدیریت،
+   فقط همین فایل را ویرایش کنید؛ پنل کاربری دست‌نخورده می‌ماند. */
+#admin-panel-screen .settings-container {
+    background: #0e1621;
+}
+
+</style>
+</head>
+<body>
+
+    <!-- بنر هشدار خاموش بودن فیلترشکن (بالای صفحه) -->
+    <div id="vpn-warning-banner" class="hidden" style="position:fixed; top:0; left:0; right:0; z-index:100000; background:#e53935; color:#fff; text-align:center; font-size:12px; padding:8px 10px calc(8px + env(safe-area-inset-top, 0px)); padding-top:calc(8px + env(safe-area-inset-top, 0px)); line-height:1.6;">
+        ⚠️ فیلترشکن (VPN) شما خاموش است. برای اتصال کامل به سرور، لطفاً آن را روشن کنید.
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="screen">
+        <div class="auth-card">
+            <h2 id="auth-title">در حال اتصال به تلگرام...</h2>
+            <br>
+            <p style="font-size:13px; line-height:1.9; opacity:0.8;">
+                این چت‌روم فقط از داخل مینی‌اپ تلگرام قابل استفاده است.
+                اگر این پیام باقی ماند، لطفاً برنامه را از طریق دکمه‌ی ربات در تلگرام باز کنید.
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Screen -->
+    <div id="main-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-title">
+                <h3>تلگرام</h3>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="جستجوی آیدی (بدون @)...">
+            <button onclick="searchUser()"><i class="fa fa-search"></i></button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-btn active" onclick="switchTab('all', this)">همه</div>
+            <div class="tab-btn" onclick="switchTab('direct', this)">پیوی‌ها</div>
+            <div class="tab-btn" onclick="switchTab('group', this)">گروه‌ها</div>
+            <div class="tab-btn" onclick="switchTab('channel', this)">کانال‌ها</div>
+        </div>
+
+        <div class="chat-list" id="chat-list-container"></div>
+
+        <div class="bottom-nav">
+            <div class="bottom-nav-item active" data-nav="chats" onclick="switchMainSection('chats')">
+                <i class="fa fa-comment-dots"></i>
+                <span>گفتگوها</span>
+            </div>
+            <div class="bottom-nav-item" data-nav="settings" onclick="switchMainSection('settings')">
+                <i class="fa fa-cog"></i>
+                <span>تنظیمات</span>
+            </div>
+            <div class="bottom-nav-item" data-nav="profile" onclick="switchMainSection('profile')">
+                <i class="fa fa-user"></i>
+                <span>پروفایل</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-title">
+                <button class="btn-back" onclick="switchMainSection('chats')"><i class="fa fa-arrow-right"></i></button>
+                <h3>تنظیمات</h3>
+            </div>
+        </div>
+
+        <div class="settings-container">
+            <button id="btn-admin-panel" class="btn-admin-menu hidden" onclick="openAdminPanel()">
+                <i class="fa fa-user-shield"></i> ورود به پنل مدیریت
+            </button>
+
+            <div class="settings-group">
+                <h4><i class="fa fa-user-lock"></i> اطلاعات حساب و حریم خصوصی</h4>
+                <label>نام</label>
+                <input type="text" id="setting-name">
+                <label>نام خانوادگی</label>
+                <input type="text" id="setting-family">
+                <label>آیدی اختصاصی (بدون @)</label>
+                <input type="text" id="setting-userid" oninput="this.value = this.value.replace(/@/g, '')">
+                <label>نام کاربری ورود (Username)</label>
+                <input type="text" id="setting-username">
+                <label>رمز عبور (Password)</label>
+                <input type="password" id="setting-password">
+                <label>بیوگرافی</label>
+                <textarea id="setting-bio" rows="3" maxlength="150" placeholder="چند خط درباره‌ی خودتان بنویسید..."></textarea>
+                <button class="btn-save-settings" onclick="saveSettings()">ذخیره تغییرات</button>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="bottom-nav-item" data-nav="chats" onclick="switchMainSection('chats')">
+                <i class="fa fa-comment-dots"></i>
+                <span>گفتگوها</span>
+            </div>
+            <div class="bottom-nav-item active" data-nav="settings" onclick="switchMainSection('settings')">
+                <i class="fa fa-cog"></i>
+                <span>تنظیمات</span>
+            </div>
+            <div class="bottom-nav-item" data-nav="profile" onclick="switchMainSection('profile')">
+                <i class="fa fa-user"></i>
+                <span>پروفایل</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Screen -->
+    <div id="profile-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-title">
+                <button class="btn-back" onclick="switchMainSection('chats')"><i class="fa fa-arrow-right"></i></button>
+                <h3>پروفایل</h3>
+            </div>
+        </div>
+
+        <div class="settings-container">
+            <div class="own-profile-header">
+                <div class="profile-avatar-wrapper" onclick="document.getElementById('user-avatar-file-input').click()">
+                    <div id="settings-avatar-box">
+                        <div class="profile-avatar profile-avatar-lg" id="settings-avatar-icon">؟</div>
+                    </div>
+                    <div class="avatar-edit-overlay"><i class="fa fa-camera"></i></div>
+                </div>
+                <input type="file" id="user-avatar-file-input" accept="image/*" class="hidden" onchange="uploadUserAvatar(event)">
+                <h3 id="settings-profile-fullname" class="own-profile-name">نام و خانوادگی</h3>
+            </div>
+
+            <div class="contact-profile-card">
+                <p id="settings-profile-bio" class="profile-bio-text" style="margin:0 0 2px;">بیوگرافی ثبت نشده است</p>
+                <div class="contact-profile-field-label">بیوگرافی</div>
+
+                <div class="contact-profile-divider"></div>
+
+                <p id="settings-profile-id" class="user-id-text" style="margin:0 0 2px;">@username</p>
+                <div class="contact-profile-field-label">نام کاربری</div>
+            </div>
+
+            <button class="btn-logout" style="width:100%; justify-content:center; padding:11px;" onclick="logout()"><i class="fa fa-sign-out-alt"></i> خروج از حساب</button>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="bottom-nav-item" data-nav="chats" onclick="switchMainSection('chats')">
+                <i class="fa fa-comment-dots"></i>
+                <span>گفتگوها</span>
+            </div>
+            <div class="bottom-nav-item" data-nav="settings" onclick="switchMainSection('settings')">
+                <i class="fa fa-cog"></i>
+                <span>تنظیمات</span>
+            </div>
+            <div class="bottom-nav-item active" data-nav="profile" onclick="switchMainSection('profile')">
+                <i class="fa fa-user"></i>
+                <span>پروفایل</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Screen -->
+    <div id="admin-panel-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-title">
+                <button class="btn-back" onclick="closeAdminPanel()"><i class="fa fa-arrow-right"></i></button>
+                <h3>پنل مدیریت سیستم</h3>
+            </div>
+        </div>
+
+        <div class="settings-container">
+            <div class="stat-box">
+                <span style="font-size: 13px; color: #7f91a4;">تعداد کل اکانت‌های ساخته شده</span>
+                <h2 id="total-users-count">0</h2>
+            </div>
+
+            <div class="settings-group">
+                <h4>لیست اکانت‌های فعال سیستم</h4>
+                <div id="admin-user-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chat-screen" class="screen hidden">
+        <div class="header">
+            <div class="header-title" style="overflow: hidden;">
+                <button class="btn-back" onclick="closeChat()"><i class="fa fa-arrow-right"></i></button>
+                <div id="chat-header-avatar"></div>
+                <div id="chat-header-info" style="display:flex; flex-direction:column; overflow:hidden; flex:1; cursor:pointer;" onclick="openHeaderProfile()">
+                    <h3 id="current-chat-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size:15px; margin:0; line-height:1.3;">نام گفتگو</h3>
+                    <span id="current-chat-subtitle" style="font-size:11px; color:#7f91a4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-more-options" onclick="openChatOptionsMenu()"><i class="fa fa-ellipsis-v"></i></button>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messages-container"></div>
+
+        <div class="chat-bottom-wrapper">
+            <div id="reply-preview" class="reply-preview hidden">
+                <span id="reply-text"></span>
+                <i class="fa fa-times" style="cursor:pointer;" onclick="cancelReply()"></i>
+            </div>
+
+            <div id="img-preview-bar" class="media-preview-bar hidden">
+                <div class="media-preview-top">
+                    <img id="img-preview-thumb" src="" alt="preview" class="media-preview-visual">
+                    <i class="fa fa-times btn-media-cancel" onclick="removePendingImage()"></i>
+                </div>
+                <div class="media-preview-bottom">
+                    <span class="media-preview-hint">توضیح تصویر رو تو کادر پیام بنویس</span>
+                    <button type="button" class="btn-media-send" onclick="sendMessage()"><i class="fa fa-paper-plane"></i> ارسال</button>
+                </div>
+            </div>
+
+            <div id="voice-preview-bar" class="media-preview-bar hidden">
+                <div class="media-preview-top">
+                    <i class="fa fa-microphone" style="color:#6ab0ff; font-size:18px;"></i>
+                    <audio id="voice-preview-audio" src="" controls class="media-preview-audio"></audio>
+                    <span id="voice-preview-duration" class="hidden">00:00</span>
+                    <i class="fa fa-trash btn-media-cancel" onclick="removePendingVoice()"></i>
+                </div>
+                <div class="media-preview-bottom">
+                    <span class="media-preview-hint">پیام صوتی آماده ارسال است</span>
+                    <button type="button" class="btn-media-send" onclick="sendMessage()"><i class="fa fa-paper-plane"></i> ارسال</button>
+                </div>
+            </div>
+
+            <div id="mic-record-indicator" class="mic-record-indicator hidden">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="rec-dot"></span>
+                    <span>در حال ضبط... <span id="mic-record-timer">00:00</span></span>
+                </div>
+                <div class="rec-controls">
+                    <button type="button" class="btn-cancel-record" onclick="cancelVoiceRecording()"><i class="fa fa-trash"></i></button>
+                    <button type="button" class="btn-stop-record" onclick="stopVoiceRecording()"><i class="fa fa-check"></i></button>
+                </div>
+            </div>
+
+            <div class="chat-input-area" id="input-area">
+                <button type="button" class="btn-attach-img" id="btn-attach-main" onclick="document.getElementById('chat-media-file-input').click()"><i class="fa fa-image"></i></button>
+                <input type="file" id="chat-media-file-input" accept="image/*" class="hidden" onchange="handleChatMediaSelect(event)">
+                <input type="file" id="group-avatar-file-input" accept="image/*" class="hidden" onchange="uploadGroupOrChannelAvatar(event)">
+
+                <input type="text" id="message-input" dir="auto" placeholder="نوشتن پیام...">
+                <button type="button" class="btn-voice-record" id="btn-voice-record" onclick="handleVoiceButtonClick()"><i class="fa fa-microphone"></i></button>
+                <button onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
+            </div>
+
+            <!-- نوار «شروع ربات»: مثل تلگرام، وقتی کاربر عادی هنوز به ربات پیشنهادات
+                 استارت نداده، به‌جای کادر نوشتن پیام همین دکمه نمایش داده می‌شود. -->
+            <div id="start-bot-bar" class="start-bot-bar hidden">
+                <button type="button" class="btn-start-bot" onclick="startSupportBot()">
+                    <i class="fa fa-paper-plane"></i> شروع ربات
+                </button>
+            </div>
+
+            <div id="locked-notice" class="chat-locked-notice hidden"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="chat-options-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 15px;">تنظیمات گفتگو</h3>
+            <div id="chat-options-list"></div>
+            <button class="modal-btn btn-cancel" onclick="closeChatOptionsMenu()">بستن</button>
+        </div>
+    </div>
+
+    <div id="message-menu-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="quick-reactions">
+                <span class="quick-reaction-btn" onclick="executeQuickReaction('❤️')">❤️</span>
+                <span class="quick-reaction-btn" onclick="executeQuickReaction('👍')">👍</span>
+                <span class="quick-reaction-btn" onclick="executeQuickReaction('🔥')">🔥</span>
+                <span class="quick-reaction-btn" onclick="executeQuickReaction('😂')">😂</span>
+                <span class="quick-reaction-btn" onclick="executeQuickReaction('😮')">😮</span>
+            </div>
+
+            <div id="message-reactions-list" class="reactions-info-box"></div>
+            <div id="message-menu-actions"></div>
+            <button class="modal-btn btn-cancel" onclick="closeMessageMenu()">بستن</button>
+        </div>
+    </div>
+
+    <div id="delete-chat-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 15px;">حذف پیوی</h3>
+            <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">نحوه حذف گفتگو را انتخاب کنید:</p>
+            <button class="modal-btn btn-secondary" onclick="executeDeleteChat('me')">حذف فقط برای خودم</button>
+            <button class="modal-btn btn-danger" id="btn-delete-everyone" onclick="executeDeleteChat('everyone')">حذف برای هر دو طرف</button>
+            <button class="modal-btn btn-cancel" onclick="closeDeleteChatModal()">انصراف</button>
+        </div>
+    </div>
+
+    <div id="forward-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h4>فوروارد به...</h4>
+                <i class="fa fa-times" style="cursor:pointer;" onclick="closeForwardModal()"></i>
+            </div>
+            <div class="modal-body" id="forward-chat-list"></div>
+        </div>
+    </div>
+
+    <div id="delete-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 15px;">حذف پیام</h3>
+            <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">نحوه حذف پیام را انتخاب کنید:</p>
+            <div id="delete-options"></div>
+            <button class="modal-btn btn-cancel" onclick="closeDeleteModal()">انصراف</button>
+        </div>
+    </div>
+
+    <div id="contact-profile-modal" class="modal-overlay hidden">
+        <div class="modal-box contact-profile-box">
+            <div id="contact-profile-avatar" class="profile-avatar-wrapper contact-profile-avatar-wrap"></div>
+            <h3 id="contact-profile-name" class="contact-profile-name">نام کاربر</h3>
+
+            <div class="contact-profile-actions">
+                <div class="contact-action-btn" onclick="contactProfileMessage()">
+                    <div class="contact-action-icon"><i class="fa fa-comment"></i></div>
+                    <span>پیام</span>
+                </div>
+                <div class="contact-action-btn" id="contact-mute-btn" onclick="toggleContactMute()">
+                    <div class="contact-action-icon"><i class="fa fa-bell-slash" id="contact-mute-icon"></i></div>
+                    <span id="contact-mute-label">بی‌صدا کردن</span>
+                </div>
+                <div class="contact-action-btn" onclick="contactProfileCall()">
+                    <div class="contact-action-icon"><i class="fa fa-phone"></i></div>
+                    <span>تماس</span>
+                </div>
+            </div>
+
+            <div class="contact-profile-card">
+                <p id="contact-profile-bio" class="profile-bio-text" style="margin:0 0 2px;">بیوگرافی ثبت نشده است</p>
+                <div class="contact-profile-field-label">بیوگرافی</div>
+
+                <div class="contact-profile-divider"></div>
+
+                <p id="contact-profile-id" class="user-id-text" style="margin:0 0 2px; cursor:pointer;" onclick="copyContactProfileId()">@username</p>
+                <div class="contact-profile-field-label">نام کاربری</div>
+            </div>
+
+            <button class="modal-btn btn-cancel" onclick="closeContactProfile()">بستن</button>
+        </div>
+    </div>
+
+    <div id="image-viewer-modal" class="modal-overlay hidden" onclick="closeImageViewer()">
+        <span class="close-img-viewer"><i class="fa fa-times"></i></span>
+        <img id="full-image-target" src="" alt="Full view" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <!-- ماژول‌های برنامه (ترتیب بارگذاری مهم است) -->
+    <script>
+/* =========================================================
+   core.js
+   تنظیمات Firebase، متغیرهای مشترک (state) و توابع کمکی عمومی
+   این فایل باید همیشه اول از همه لود شود.
+   ========================================================= */
+
+/* ---------- جایگزین سفارشی alert() و confirm() ----------
+   مرورگر روی پاپ‌آپ‌های alert/confirm پیش‌فرض، آدرس سایت را
+   نمایش می‌دهد (مثلا "example.github.io می‌گوید"). این باکس‌های
+   سفارشی همان ظاهر و رفتار را می‌دهند بدون اینکه آدرس دامنه دیده شود؛
+   این کار همچنین باعث می‌شود در نسخه APK هم آدرسی نمایش داده نشود. */
+(function () {
+    const style = document.createElement('style');
+    style.textContent = `
+        .cm-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 99999; padding: 20px; box-sizing: border-box;
+        }
+        .cm-box {
+            background: #242f3d; color: #fff; width: 100%; max-width: 320px;
+            border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            text-align: center; font-family: inherit;
+        }
+        .cm-message { font-size: 14px; line-height: 1.9; white-space: pre-line; margin-bottom: 18px; }
+        .cm-buttons { display: flex; gap: 8px; }
+        .cm-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 6px;
+            cursor: pointer; font-size: 14px; font-weight: bold; font-family: inherit;
+        }
+        .cm-btn-ok { background: #5288c1; color: #fff; }
+        .cm-btn-cancel { background: #17212b; color: #ccc; }
+    `;
+    document.head.appendChild(style);
+
+    function buildOverlay(message, buttonsHtml) {
+        const overlay = document.createElement('div');
+        overlay.className = 'cm-overlay';
+        overlay.innerHTML = `
+            <div class="cm-box">
+                <div class="cm-message"></div>
+                <div class="cm-buttons">${buttonsHtml}</div>
+            </div>`;
+        overlay.querySelector('.cm-message').textContent = message;
+        document.body.appendChild(overlay);
+        return overlay;
+    }
+
+    window.alert = function (message) {
+        const overlay = buildOverlay(message, `<button class="cm-btn cm-btn-ok" data-act="ok">تأیید</button>`);
+        overlay.querySelector('[data-act="ok"]').onclick = () => overlay.remove();
+    };
+
+    window.customConfirm = function (message) {
+        return new Promise((resolve) => {
+            const overlay = buildOverlay(message, `
+                <button class="cm-btn cm-btn-cancel" data-act="cancel">لغو</button>
+                <button class="cm-btn cm-btn-ok" data-act="ok">تأیید</button>
+            `);
+            overlay.querySelector('[data-act="ok"]').onclick = () => { overlay.remove(); resolve(true); };
+            overlay.querySelector('[data-act="cancel"]').onclick = () => { overlay.remove(); resolve(false); };
+        });
+    };
+})();
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAUYnjKIDW33M4g6vFxDwYiIm3ZPFmPP9Q",
+  authDomain: "jonlon.firebaseapp.com",
+  databaseURL: "https://jonlon-default-rtdb.firebaseio.com",
+  projectId: "jonlon",
+  storageBucket: "jonlon.firebasestorage.app",
+  messagingSenderId: "159750008628",
+  appId: "1:159750008628:web:15701c88a46fbd75ddbf61",
+  measurementId: "G-STSEFZ4PF9"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ---------- وضعیت مشترک برنامه (state) ---------- */
+let currentUser = null;
+let currentChat = null;
+let replyingToMessageId = null;
+let editingMessageId = null;
+let activeTab = 'all';
+let messageToForward = null;
+let messageToDelete = null;
+let selectedMessageObj = null;
+let pendingImageBase64 = null;
+let pendingVideoBase64 = null;
+let pendingVoiceBase64 = null;
+let tempAuth = {};
+
+/* ---------- ضبط ویس ---------- */
+let mediaRecorderInstance = null;
+let recordedAudioChunks = [];
+let voiceRecordTimerInterval = null;
+let voiceRecordSeconds = 0;
+const MAX_VOICE_SECONDS = 120;      // حداکثر ۲ دقیقه ویس
+const MAX_VIDEO_FILE_MB = 15;       // حداکثر حجم ویدیو (به مگابایت)
+
+let users = JSON.parse(localStorage.getItem('app_users_v6')) || {};
+let messages = JSON.parse(localStorage.getItem('app_messages_v6')) || [];
+let unreadCounts = JSON.parse(localStorage.getItem('app_unread_v6')) || {};
+let blockedUsers = JSON.parse(localStorage.getItem('app_blocked_v6')) || {};
+let mutedChats = JSON.parse(localStorage.getItem('app_muted_chats_v6')) || {};
+let reactionAlerts = JSON.parse(localStorage.getItem('app_reaction_alerts_v6')) || {};
+let replyAlerts = JSON.parse(localStorage.getItem('app_reply_alerts_v6')) || {};
+let chatMetaData = JSON.parse(localStorage.getItem('app_chat_meta_v6')) || {};
+
+let chatLockStatus = JSON.parse(localStorage.getItem('app_chat_locks_v6')) || {
+    'news_channel': true,
+    'support_group': false
+};
+
+/* ---------- Firebase Sync Listeners ---------- */
+db.ref('app_messages_v6').on('value', (snapshot) => {
+    const data = snapshot.val();
+    messages = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+    localStorage.setItem('app_messages_v6', JSON.stringify(messages));
+    if (currentChat) renderMessages();
+    renderChatList();
+});
+
+db.ref('app_users_v6').on('value', (snapshot) => {
+    const data = snapshot.val();
+    users = data || {};
+    localStorage.setItem('app_users_v6', JSON.stringify(users));
+    renderChatList();
+
+    /* اگر همین الان طرفِ پیوی باز شده (چه در حین ارسال پیام چه نه) توسط
+       مدیریت حذف شده باشد، بلافاصله نوار ارسال پیام مخفی و پیام «حساب
+       حذف شده» نمایش داده می‌شود، بدون نیاز به خروج از گفتگو و ورود دوباره. */
+    if (currentChat && typeof isDeletedDirectChat === 'function' && isDeletedDirectChat(currentChat.id, currentChat.type)) {
+        const inputArea = document.getElementById('input-area');
+        const lockedNotice = document.getElementById('locked-notice');
+        if (inputArea && lockedNotice) {
+            inputArea.style.display = 'none';
+            lockedNotice.innerHTML = '<i class="fa fa-user-slash"></i> این حساب کاربری حذف شده است. امکان ارسال پیام وجود ندارد.';
+            lockedNotice.classList.remove('hidden');
+        }
+    }
+
+    /* اگر همین الان یک کاربر عادی داخل برنامه لاگین است و مدیریت
+       اکانتش را حذف یا تعلیق کرده باشد، بلافاصله (بدون نیاز به رفرش
+       یا خروج/ورود دستی) از حساب خارجش می‌کنیم. */
+    if (currentUser && !currentUser.isAdmin) {
+        const uid = currentUser.userId.toLowerCase();
+        const freshUser = users[uid];
+        let kickMessage = null;
+
+        if (!freshUser) {
+            kickMessage = 'حساب کاربری شما توسط مدیریت حذف شده است.';
+        } else if (freshUser.suspendedUntil && freshUser.suspendedUntil > Date.now()) {
+            const days = Math.ceil((freshUser.suspendedUntil - Date.now()) / (24 * 60 * 60 * 1000));
+            kickMessage = `حساب کاربری شما به‌صورت موقت تعلیق شده است.\nزمان باقی‌مانده: حدود ${days} روز دیگر.`;
+        }
+
+        if (kickMessage) {
+            currentUser = null;
+            localStorage.removeItem('app_current_session_v6');
+            hideMainSections();
+            const authScreen = document.getElementById('auth-screen');
+            if (authScreen) authScreen.classList.remove('hidden');
+            if (typeof switchToLogin === 'function') switchToLogin();
+            alert(kickMessage);
+        } else if (freshUser) {
+            /* بدون نیاز به خروج/ورود دوباره، وضعیت تیک وریفای قرمز کاربر را
+               همین الان با نسخه‌ی سرور همگام می‌کنیم تا اگر مدیریت تازه
+               این تیک را داده/گرفته، بلافاصله روی گفتگوی قفل‌شده اثر بگذارد. */
+            if (currentUser.isRedVerified !== !!freshUser.isRedVerified) {
+                currentUser.isRedVerified = !!freshUser.isRedVerified;
+                persistSession();
+                if (currentChat) {
+                    openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
+                }
+            }
+        }
+    }
+});
+
+db.ref('app_unread_v6').on('value', (snapshot) => {
+    const data = snapshot.val();
+    unreadCounts = data || {};
+    localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
+    renderChatList();
+});
+
+db.ref('app_chat_locks_v6').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        chatLockStatus = data;
+        localStorage.setItem('app_chat_locks_v6', JSON.stringify(chatLockStatus));
+        if (currentChat) {
+            openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
+        }
+    }
+});
+
+/* ---------- توابع کمکی عمومی ---------- */
+function compressAndReadImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const max_size = 800;
+            if (width > height) {
+                if (width > max_size) {
+                    height *= max_size / width;
+                    width = max_size;
+                }
+            } else {
+                if (height > max_size) {
+                    width *= max_size / height;
+                    height = max_size;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function readVideoFileAsBase64(file, callback) {
+    if (!file.type.startsWith('video/')) {
+        alert('لطفا یک فایل ویدیویی معتبر انتخاب کنید.');
+        return;
+    }
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > MAX_VIDEO_FILE_MB) {
+        alert(`حجم ویدیو زیاد است. لطفا ویدیویی کمتر از ${MAX_VIDEO_FILE_MB} مگابایت انتخاب کنید.`);
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        callback(e.target.result, file.size);
+    };
+    reader.readAsDataURL(file);
+}
+
+function formatRecordTime(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const s = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+function getSavedMessagesChatId() {
+    return `saved_${currentUser.userId.toLowerCase()}`;
+}
+
+/* ---------- تیک وریفای ----------
+   آبی (verified-badge): مخصوص ادمین/چت‌های رسمی پشتیبانی
+   قرمز (verified-badge-red): تیکی که مدیریت می‌تواند به‌صورت دستی
+   به هر کاربر عادی بدهد؛ این کاربران هم مثل ادمین اجازه‌ی ارسال
+   پیام در گروه/کانال قفل‌شده را دارند. */
+function verifiedBadgeHtml(isVerified, isRedVerified) {
+    if (isVerified) return ' <i class="fa-solid fa-circle-check verified-badge" title="حساب رسمی"></i>';
+    if (isRedVerified) return ' <i class="fa-solid fa-circle-check verified-badge-red" title="حساب وریفای‌شده"></i>';
+    return '';
+}
+
+function getStaticChats() {
+    return [
+        { id: 'news_channel', title: 'کانال اخبار پشتیبانی', type: 'channel', isVerified: true },
+        { id: 'support_group', title: 'گروه پشتیبانی', type: 'group', isVerified: true },
+        { id: getSavedMessagesChatId(), title: 'پیام‌های ذخیره شده', type: 'saved', isVerified: false },
+        { id: 'admin', title: 'پشتیبانی مرکزی', type: 'direct', isVerified: true }
+    ];
+}
+
+function saveMessages() {
+    localStorage.setItem('app_messages_v6', JSON.stringify(messages));
+    db.ref('app_messages_v6').set(messages);
+}
+
+/* توجه: به‌جای بازنویسی کل نود app_users_v6 (که در صورت ناقص/قدیمی بودن
+   نسخه‌ی محلی، باعث پاک شدن اکانت‌های دیگران می‌شد)، فقط رکورد همان
+   کاربری که تغییر کرده را در دیتابیس می‌نویسیم. اگر رنیم/تغییر آیدی
+   رخ داده باشد (deletedUserId)، آیدی قدیمی را جداگانه حذف می‌کنیم. */
+function saveUsers(changedUserId, deletedUserId) {
+    localStorage.setItem('app_users_v6', JSON.stringify(users));
+
+    if (changedUserId && users[changedUserId]) {
+        db.ref('app_users_v6/' + changedUserId).set(users[changedUserId]);
+    }
+    if (deletedUserId) {
+        db.ref('app_users_v6/' + deletedUserId).remove();
+    }
+}
+
+function showVpnWarning() {
+    const el = document.getElementById('vpn-warning-banner');
+    if (el) el.classList.remove('hidden');
+}
+
+function hideVpnWarning() {
+    const el = document.getElementById('vpn-warning-banner');
+    if (el) el.classList.add('hidden');
+}
+
+/* مانیتور دائمی وضعیت اتصال به سرور: هر وقت اتصال قطع شود (مثلاً به‌خاطر
+   خاموش بودن فیلترشکن)، بنر بالای صفحه نمایش داده می‌شود و به‌محض وصل شدن
+   دوباره، به‌صورت خودکار مخفی می‌شود. */
+db.ref('.info/connected').on('value', function (snapshot) {
+    if (snapshot.val() === true) {
+        hideVpnWarning();
+    } else {
+        showVpnWarning();
+    }
+});
+
+function setActiveNav(tab) {
+    document.querySelectorAll('.bottom-nav-item').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('data-nav') === tab);
+    });
+}
+
+function hideMainSections() {
+    document.getElementById('main-screen').classList.add('hidden');
+    document.getElementById('settings-screen').classList.add('hidden');
+    document.getElementById('profile-screen').classList.add('hidden');
+}
+
+function switchMainSection(tab) {
+    if (tab === 'chats') {
+        hideMainSections();
+        document.getElementById('main-screen').classList.remove('hidden');
+        renderChatList();
+    } else if (tab === 'settings') {
+        openSettings();
+    } else if (tab === 'profile') {
+        openProfile();
+    }
+    setActiveNav(tab);
+}
+
+window.switchMainSection = switchMainSection;
+
+/* ---------- تطبیق ارتفاع صفحه با ظاهر شدن کیبورد موبایل ----------
+   چون html/body با position:fixed تنظیم شده، با باز شدن کیبورد در
+   موبایل، ارتفاع innerHeight تغییر نمی‌کند و کادر نوشتن پیام زیر
+   کیبورد پنهان می‌ماند. با گوش دادن به visualViewport، ارتفاع واقعی
+   صفحه‌ی قابل مشاهده را به .screen اعمال می‌کنیم تا کادر ورودی همیشه
+   بالای کیبورد باقی بماند. */
+function setupViewportKeyboardFix() {
+    function updateHeight() {
+        const vv = window.visualViewport;
+        // برخی مرورگرهای موبایل (مخصوصاً غیر از کروم) مقدار visualViewport.height
+        // را کوچک‌تر از ارتفاع واقعی صفحه گزارش می‌دهند، حتی وقتی کیبورد بسته است.
+        // اگر همیشه همان مقدار را اعمال کنیم، صفحه کوتاه‌تر از حالت واقعی می‌شود
+        // و پس‌زمینه‌ی body (فضای خالی) بالا/پایین کادر پیام دیده می‌شود.
+        // برای جلوگیری از این باگ، فقط وقتی ارتفاع را کوچک می‌کنیم که واقعاً
+        // کیبورد باز شده باشد (اختلاف محسوس با window.innerHeight)؛ در غیر این
+        // صورت از window.innerHeight (که همیشه ارتفاع واقعی صفحه است) استفاده می‌کنیم.
+        const winH = window.innerHeight;
+        let h = winH;
+        if (vv && winH - vv.height > 100) {
+            // اختلاف محسوس = کیبورد باز است، از ارتفاع واقعی قابل مشاهده استفاده کن
+            h = vv.height;
+        }
+        document.querySelectorAll('.screen').forEach(el => {
+            el.style.height = h + 'px';
+        });
+        if (vv) window.scrollTo(0, 0);
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', updateHeight);
+        window.visualViewport.addEventListener('scroll', updateHeight);
+    }
+    window.addEventListener('resize', updateHeight);
+    updateHeight();
+
+    // وقتی کاربر روی کادر نوشتن پیام می‌زند، مطمئن می‌شویم آن قسمت
+    // در دید باقی می‌ماند و کیبورد آن را نمی‌پوشاند.
+    const msgInput = document.getElementById('message-input');
+    if (msgInput) {
+        msgInput.addEventListener('focus', () => {
+            setTimeout(updateHeight, 300);
+            setTimeout(() => {
+                msgInput.scrollIntoView({ block: 'end', behavior: 'smooth' });
+            }, 350);
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', setupViewportKeyboardFix);
+
+/* ---------- سوایپ از لبه‌ی صفحه برای خروج از گفتگو ----------
+   اگر کاربر از نزدیکی لبه‌ی چپ یا راست صفحه‌ی چت شروع به کشیدن انگشت
+   کند و به‌اندازه‌ی کافی افقی جابه‌جا شود (بدون این‌که عمودی زیاد
+   جابه‌جا شده باشد، تا با اسکرول پیام‌ها اشتباه گرفته نشود)، از گفتگو
+   خارج می‌شویم — دقیقاً مثل ژست بازگشت رایج در اپ‌های موبایل. */
+function setupEdgeSwipeToClose() {
+    const EDGE_ZONE = 28;      // فقط لمس‌هایی که این‌قدر به لبه نزدیک شروع شوند
+    const SWIPE_THRESHOLD = 70; // حداقل جابه‌جایی افقی برای شمرده‌شدن به‌عنوان سوایپ خروج
+
+    let startX = 0, startY = 0, startedNearEdge = false, tracking = false;
+
+    document.addEventListener('touchstart', function (e) {
+        const chatScreen = document.getElementById('chat-screen');
+        if (!chatScreen || chatScreen.classList.contains('hidden')) { tracking = false; return; }
+        if (e.touches.length !== 1) { tracking = false; return; }
+
+        const t = e.touches[0];
+        startX = t.clientX;
+        startY = t.clientY;
+        startedNearEdge = (startX <= EDGE_ZONE) || (startX >= window.innerWidth - EDGE_ZONE);
+        tracking = startedNearEdge;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function (e) {
+        if (!tracking) return;
+        tracking = false;
+
+        const chatScreen = document.getElementById('chat-screen');
+        if (!chatScreen || chatScreen.classList.contains('hidden')) return;
+
+        const t = e.changedTouches[0];
+        const dx = t.clientX - startX;
+        const dy = t.clientY - startY;
+
+        if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
+            if (typeof closeChat === 'function') closeChat();
+        }
+    }, { passive: true });
+}
+
+document.addEventListener('DOMContentLoaded', setupEdgeSwipeToClose);
+
+</script>
+    <script>
+/* =========================================================
+   users.js
+   ورود / ثبت‌نام / خروج، پروفایل، تنظیمات حساب، آواتار و جستجوی کاربر
+   وابسته به: core.js (باید قبل از این فایل لود شود)
+   ========================================================= */
+
+/* آیدی عددی تلگرام مالک/ادمین ربات — این عدد را با آیدی عددی
+   تلگرام خودت جایگزین کن (می‌تونی از بات @userinfobot بگیری). */
+const OWNER_TELEGRAM_ID = '8921602643';
+
+/* ---------- ورود خودکار از طریق مینی‌اپ تلگرام ----------
+   کل ورود به برنامه فقط از این طریق انجام می‌شود: کاربر برنامه را
+   داخل تلگرام باز می‌کند، هویتش (آیدی عددی تلگرام) خوانده می‌شود و
+   بدون هیچ فرم یوزرنیم/پسوردی مستقیم وارد می‌شود. اگر آیدی عددیِ
+   کاربر با OWNER_TELEGRAM_ID یکی باشد، به‌عنوان مالک/مدیریت
+   (همان حساب ویژه‌ی 'admin') وارد می‌شود؛ در غیر این صورت یک
+   حساب عادی با userId ثابتِ برگرفته از آیدی تلگرامش ساخته یا
+   بازیابی می‌شود. callback(true) یعنی نتیجه مشخص شد،
+   callback(false) یعنی برنامه خارج از تلگرام باز شده. */
+function tryTelegramAutoLogin(callback) {
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+
+    if (!tgUser) { callback(false); return; }
+
+    tg.ready();
+    tg.expand();
+    // جلوگیری از تداخل ژست‌های خود تلگرام (سوایپ برای بستن) با لمس‌های
+    // داخل صفحه که باعث می‌شد لمس اول فقط «بیدار» شدن صفحه باشد و
+    // کیبورد فقط با لمس دوم باز شود.
+    if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
+
+    /* اگر بعد از چند ثانیه هنوز جوابی از سرور نیامده باشد، پیام صفحه را
+       واضح می‌کنیم که مشکل از قطع بودن اتصال/فیلترشکن است، نه این‌که برنامه
+       هنگ کرده. خود درخواست هم‌چنان در پس‌زمینه فعال می‌ماند و به‌محض وصل
+       شدن، ورود کامل می‌شود. */
+    const slowConnectionTimer = setTimeout(function () {
+        const title = document.getElementById('auth-title');
+        if (title) title.innerText = 'اتصال برقرار نشد — لطفاً فیلترشکن (VPN) خود را روشن کنید';
+    }, 6000);
+
+    const isOwner = String(tgUser.id) === String(OWNER_TELEGRAM_ID);
+    const userId = isOwner ? 'admin' : String(tgUser.id);
+
+    db.ref('app_users_v6/' + userId).once('value').then(function (snapshot) {
+        clearTimeout(slowConnectionTimer);
+        let userData = snapshot.val();
+
+        if (!userData) {
+            userData = {
+                name: tgUser.first_name || (isOwner ? 'پشتیبانی مرکزی' : 'کاربر'),
+                family: tgUser.last_name || '',
+                userId: userId,
+                username: tgUser.username || userId,
+                password: null,
+                isAdmin: isOwner,
+                isRedVerified: false,
+                avatar: tgUser.photo_url || null,
+                telegramId: tgUser.id
+            };
+            users[userId] = userData;
+            saveUsers(userId);
+        } else if (!isOwner && userData.suspendedUntil && userData.suspendedUntil > Date.now()) {
+            const days = Math.ceil((userData.suspendedUntil - Date.now()) / (24 * 60 * 60 * 1000));
+            alert(`حساب شما توسط مدیریت به‌صورت موقت تعلیق شده است.\nزمان باقی‌مانده: حدود ${days} روز دیگر.`);
+            callback(true);
+            return;
+        } else {
+            // اطمینان از این‌که فلگ isAdmin و آیدی تلگرام همیشه به‌روز باشد
+            userData.isAdmin = isOwner || !!userData.isAdmin;
+            userData.telegramId = tgUser.id;
+            users[userId] = userData;
+        }
+
+        currentUser = users[userId];
+        persistSession();
+        initApp();
+        callback(true);
+    }).catch(function () {
+        clearTimeout(slowConnectionTimer);
+        callback(false);
+    });
+}
+
+/* اگر برنامه خارج از تلگرام (مثلاً مستقیم داخل مرورگر) باز شود،
+   فرم لاگین/ثبت‌نامی وجود ندارد؛ فقط یک پیام راهنما نشان داده می‌شود. */
+function switchToLogin() {
+    const title = document.getElementById('auth-title');
+    if (title) title.innerText = 'این چت‌روم فقط از داخل تلگرام باز می‌شود';
+}
+
+function initApp() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+    renderChatList();
+}
+
+/* ---------- ماندگاری نشست (Session) بین رفرش‌های صفحه ---------- */
+function persistSession() {
+    if (currentUser) {
+        localStorage.setItem('app_current_session_v6', JSON.stringify(currentUser));
+    }
+}
+
+function restoreSession() {
+    const saved = localStorage.getItem('app_current_session_v6');
+    if (!saved) return;
+    try {
+        const savedUser = JSON.parse(saved);
+        if (!savedUser || !savedUser.userId) return;
+
+        if (savedUser.isAdmin) {
+            // آواتار مدیر را از آخرین نسخه‌ی همگام‌شده می‌خوانیم
+            currentUser = { ...savedUser, avatar: (users['admin'] ? users['admin'].avatar : savedUser.avatar) };
+            initApp();
+            return;
+        }
+
+        const uid = savedUser.userId.toLowerCase();
+
+        /* برای اطمینان از این‌که اکانت توسط مدیریت حذف یا تعلیق نشده، به‌جای
+           اتکای صرف به کش محلی (که ممکن است هنوز کامل با سرور سینک نشده
+           باشد)، یک‌بار مستقیم از خود فایربیس همان کاربر را می‌خوانیم. */
+        db.ref('app_users_v6/' + uid).once('value').then(function(snapshot) {
+            const freshUser = snapshot.val();
+
+            if (!freshUser) {
+                localStorage.removeItem('app_current_session_v6');
+                alert('حساب کاربری شما توسط مدیریت حذف شده است.');
+                return;
+            }
+            if (freshUser.suspendedUntil && freshUser.suspendedUntil > Date.now()) {
+                localStorage.removeItem('app_current_session_v6');
+                const days = Math.ceil((freshUser.suspendedUntil - Date.now()) / (24 * 60 * 60 * 1000));
+                alert(`حساب کاربری شما به‌صورت موقت تعلیق شده است.\nزمان باقی‌مانده: حدود ${days} روز دیگر.`);
+                return;
+            }
+
+            users[uid] = freshUser;
+            currentUser = freshUser;
+            initApp();
+        }).catch(function() {
+            // در صورت نبود اتصال، برای حفظ قابلیت استفاده‌ی آفلاین، با نسخه‌ی محلی وارد شو
+            currentUser = users[uid] || savedUser;
+            initApp();
+        });
+    } catch (e) {
+        localStorage.removeItem('app_current_session_v6');
+    }
+}
+
+async function logout() {
+    if (await customConfirm("آیا می‌خواهید از حساب خود خارج شوید؟")) {
+        currentUser = null;
+        localStorage.removeItem('app_current_session_v6');
+        hideMainSections();
+        document.getElementById('auth-screen').classList.remove('hidden');
+        switchToLogin();
+    }
+}
+
+function uploadUserAvatar(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    compressAndReadImage(file, function(base64Image) {
+        currentUser.avatar = base64Image;
+        if (!currentUser.isAdmin) {
+            if (users[currentUser.userId.toLowerCase()]) {
+                users[currentUser.userId.toLowerCase()].avatar = base64Image;
+                saveUsers(currentUser.userId.toLowerCase());
+            }
+        } else {
+            if (!users['admin']) users['admin'] = currentUser;
+            users['admin'].avatar = base64Image;
+            saveUsers('admin');
+        }
+
+        persistSession();
+        renderSettingsAvatar();
+        renderChatList();
+        alert('تصویر پروفایل شما با موفقیت بروزرسانی شد!');
+    });
+}
+
+function renderSettingsAvatar() {
+    const avatarBox = document.getElementById('settings-avatar-box');
+    if (currentUser.avatar) {
+        avatarBox.innerHTML = `<img src="${currentUser.avatar}" class="profile-avatar profile-avatar-lg">`;
+    } else {
+        const initial = currentUser.name ? currentUser.name.charAt(0) : '؟';
+        avatarBox.innerHTML = `<div class="profile-avatar profile-avatar-lg" id="settings-avatar-icon">${initial}</div>`;
+    }
+}
+
+function openSettings() {
+    document.getElementById('setting-name').value = currentUser.name || '';
+    document.getElementById('setting-family').value = currentUser.family || '';
+    document.getElementById('setting-userid').value = currentUser.userId || '';
+    document.getElementById('setting-username').value = currentUser.username || '';
+    document.getElementById('setting-password').value = currentUser.password || '';
+    document.getElementById('setting-bio').value = currentUser.bio || '';
+
+    const btnAdminPanel = document.getElementById('btn-admin-panel');
+    if(currentUser.isAdmin) {
+        btnAdminPanel.classList.remove('hidden');
+        document.getElementById('setting-userid').disabled = true;
+        document.getElementById('setting-username').disabled = true;
+    } else {
+        btnAdminPanel.classList.add('hidden');
+        document.getElementById('setting-userid').disabled = false;
+        document.getElementById('setting-username').disabled = false;
+    }
+
+    hideMainSections();
+    document.getElementById('settings-screen').classList.remove('hidden');
+    setActiveNav('settings');
+}
+
+function openProfile() {
+    document.getElementById('settings-profile-fullname').innerText = `${currentUser.name} ${currentUser.family}`;
+    document.getElementById('settings-profile-id').innerText = `@${currentUser.userId}`;
+
+    const bioEl = document.getElementById('settings-profile-bio');
+    if (currentUser.bio && currentUser.bio.trim()) {
+        bioEl.innerText = currentUser.bio;
+        bioEl.classList.remove('profile-bio-empty');
+    } else {
+        bioEl.innerText = 'بیوگرافی ثبت نشده است';
+        bioEl.classList.add('profile-bio-empty');
+    }
+
+    renderSettingsAvatar();
+
+    hideMainSections();
+    document.getElementById('profile-screen').classList.remove('hidden');
+    setActiveNav('profile');
+}
+
+function saveSettings() {
+    const name = document.getElementById('setting-name').value.trim();
+    const family = document.getElementById('setting-family').value.trim();
+    const newUserId = document.getElementById('setting-userid').value.trim().toLowerCase();
+    const newUsername = document.getElementById('setting-username').value.trim();
+    const newPassword = document.getElementById('setting-password').value.trim();
+    const newBio = document.getElementById('setting-bio').value.trim();
+
+    if (!name || !newUserId || !newUsername || !newPassword) {
+        return alert('تمام فیلدها را پر کنید');
+    }
+
+    if (!currentUser.isAdmin) {
+        if (newUserId.includes('@')) return alert('در آیدی نباید از علامت @ استفاده کنید. آیدی را بدون @ وارد کنید.');
+        if (newUserId.length < 5) return alert('آیدی باید حداقل ۵ حرف باشد.');
+    }
+
+    if (currentUser.isAdmin) {
+        currentUser.name = name;
+        currentUser.family = family;
+        currentUser.password = newPassword;
+        currentUser.bio = newBio;
+        if (!users['admin']) users['admin'] = currentUser;
+        users['admin'].bio = newBio;
+        users['admin'].name = name;
+        users['admin'].family = family;
+        saveUsers('admin');
+        persistSession();
+        alert('اطلاعات مدیریت با موفقیت بروز شد!');
+        openSettings();
+        return;
+    }
+
+    const oldUserId = currentUser.userId.toLowerCase();
+
+    if (newUserId !== oldUserId && (users[newUserId] || newUserId === 'admin')) {
+        return alert('این آیدی قبلاً توسط شخص دیگری ثبت شده است!');
+    }
+
+    const existsUsername = Object.values(users).some(u => u.userId.toLowerCase() !== oldUserId && u.username.toLowerCase() === newUsername.toLowerCase());
+    if (existsUsername) {
+        return alert('این نام کاربری قبلاً استفاده شده است!');
+    }
+
+    delete users[oldUserId];
+
+    currentUser.name = name;
+    currentUser.family = family;
+    currentUser.userId = newUserId;
+    currentUser.username = newUsername;
+    currentUser.password = newPassword;
+    currentUser.bio = newBio;
+
+    users[newUserId] = currentUser;
+
+    messages.forEach(m => {
+        if (m.sender.toLowerCase() === oldUserId) m.sender = newUserId;
+        if (m.chatId.toLowerCase() === oldUserId) m.chatId = newUserId;
+        if (m.chatId.toLowerCase() === `saved_${oldUserId}`) m.chatId = `saved_${newUserId}`;
+    });
+
+    saveUsers(newUserId, newUserId !== oldUserId ? oldUserId : null);
+    saveMessages();
+    persistSession();
+
+    alert('اطلاعات شما با موفقیت بروزرسانی شد!');
+    openSettings();
+}
+
+let currentProfileTargetId = null;
+
+/* نمایش مودال پروفایل یک کاربر دیگر (مثل تلگرام، با کلیک روی نام در هدر پیوی) */
+function openContactProfile(userId) {
+    if (!userId) return;
+    const uid = userId.toLowerCase();
+
+    renderContactProfileModal(uid);
+    document.getElementById('contact-profile-modal').classList.remove('hidden');
+
+    /* برای اطمینان از تازه بودن بیوگرافی/آواتار، یک‌بار از سرور هم می‌خوانیم
+       (شبیه به همان روشی که searchUser برای کاربران ناشناس استفاده می‌کند) */
+    if (uid !== 'admin' || !users['admin']) {
+        db.ref('app_users_v6/' + uid).once('value').then(snapshot => {
+            const data = snapshot.val();
+            if (data) {
+                users[uid] = data;
+                localStorage.setItem('app_users_v6', JSON.stringify(users));
+                if (currentProfileTargetId === uid && !document.getElementById('contact-profile-modal').classList.contains('hidden')) {
+                    renderContactProfileModal(uid);
+                }
+            }
+        }).catch(() => {});
+    }
+}
+
+function renderContactProfileModal(uid) {
+    currentProfileTargetId = uid;
+
+    let data;
+    if (uid === 'admin') {
+        const adminData = users['admin'] || {};
+        data = { name: 'پشتیبانی مرکزی', family: '', userId: 'admin', avatar: adminData.avatar || null, bio: adminData.bio || '', isVerified: true, isRedVerified: false };
+    } else {
+        const u = users[uid] || {};
+        data = { name: u.name || uid, family: u.family || '', userId: u.userId || uid, avatar: u.avatar || null, bio: u.bio || '', isVerified: !!u.isAdmin, isRedVerified: !!u.isRedVerified };
+    }
+
+    const fullName = `${data.name} ${data.family}`.trim() || uid;
+    const verifiedHtml = verifiedBadgeHtml(data.isVerified, data.isRedVerified);
+    document.getElementById('contact-profile-name').innerHTML = fullName + verifiedHtml;
+    document.getElementById('contact-profile-id').innerText = '@' + data.userId;
+
+    const avatarBox = document.getElementById('contact-profile-avatar');
+    if (data.avatar) {
+        avatarBox.innerHTML = `<img src="${data.avatar}" class="profile-avatar profile-avatar-lg">`;
+    } else {
+        const initial = fullName.charAt(0).toUpperCase();
+        avatarBox.innerHTML = `<div class="profile-avatar profile-avatar-lg">${initial}</div>`;
+    }
+
+    const bioEl = document.getElementById('contact-profile-bio');
+    if (data.bio && data.bio.trim()) {
+        bioEl.innerText = data.bio;
+        bioEl.classList.remove('profile-bio-empty');
+    } else {
+        bioEl.innerText = 'بیوگرافی ثبت نشده است';
+        bioEl.classList.add('profile-bio-empty');
+    }
+
+    renderContactMuteState(uid);
+}
+
+function closeContactProfile() {
+    document.getElementById('contact-profile-modal').classList.add('hidden');
+    currentProfileTargetId = null;
+}
+
+function copyContactProfileId() {
+    if (!currentProfileTargetId) return;
+    copyTextWithToast('@' + currentProfileTargetId);
+}
+
+/* دکمه «پیام»: چون این مودال همیشه از داخل همان پیوی باز می‌شود، کافیست
+   بسته شود و فوکوس روی کادر نوشتن پیام برود. */
+function contactProfileMessage() {
+    closeContactProfile();
+    const input = document.getElementById('message-input');
+    if (input) input.focus();
+}
+
+/* دکمه «تماس»: این نسخه از برنامه قابلیت تماس صوتی/تصویری واقعی ندارد. */
+function contactProfileCall() {
+    alert('قابلیت تماس صوتی در این نسخه هنوز فعال نشده است.');
+}
+
+function renderContactMuteState(uid) {
+    const myId = currentUser.userId.toLowerCase();
+    const isMuted = (mutedChats[myId] || []).includes(uid);
+
+    const btn = document.getElementById('contact-mute-btn');
+    const icon = document.getElementById('contact-mute-icon');
+    const label = document.getElementById('contact-mute-label');
+    if (!btn || !icon || !label) return;
+
+    btn.classList.toggle('muted', isMuted);
+    icon.classList.toggle('fa-bell-slash', !isMuted);
+    icon.classList.toggle('fa-bell', isMuted);
+    label.innerText = isMuted ? 'صدادار کردن' : 'بی‌صدا کردن';
+}
+
+/* بی‌صدا کردن یک گفتگو: چون این برنامه اعلان (نوتیفیکیشن) سیستمی ارسال نمی‌کند،
+   منظور از «بی‌صدا» اینجا این است که در لیست گفتگوها به‌جای عدد پیام‌های
+   نخوانده، فقط یک آیکون کوچک بی‌صدا نشان داده شود (دقیقا مثل تلگرام).
+   این تنظیم فقط روی همین دستگاه ذخیره می‌شود. */
+function toggleContactMute() {
+    if (!currentProfileTargetId) return;
+    const myId = currentUser.userId.toLowerCase();
+    if (!mutedChats[myId]) mutedChats[myId] = [];
+
+    const idx = mutedChats[myId].indexOf(currentProfileTargetId);
+    if (idx > -1) {
+        mutedChats[myId].splice(idx, 1);
+    } else {
+        mutedChats[myId].push(currentProfileTargetId);
+    }
+
+    localStorage.setItem('app_muted_chats_v6', JSON.stringify(mutedChats));
+    renderContactMuteState(currentProfileTargetId);
+    if (typeof renderChatList === 'function') renderChatList();
+}
+
+function searchUser() {
+    const searchId = document.getElementById('search-input').value.trim().toLowerCase();
+    if (!searchId) return;
+
+    if (searchId === 'admin' && currentUser.isAdmin) {
+        return alert('شما در حال حاضر با اکانت مدیریت فعال هستید.');
+    }
+
+    if (users[searchId] || searchId === 'admin') {
+        const targetName = users[searchId] ? `${users[searchId].name} ${users[searchId].family}` : 'پشتیبانی مرکزی';
+        const isVerified = searchId === 'admin' || (users[searchId] && users[searchId].isAdmin);
+        const isRedVerified = users[searchId] && users[searchId].isRedVerified;
+        openChat(searchId, targetName, 'direct', isVerified, isRedVerified);
+        document.getElementById('search-input').value = '';
+        return;
+    }
+
+    /* اگر کاربر در نسخه‌ی محلی (users) پیدا نشد، به‌جای اعلام فوری «یافت نشد»
+       یک‌بار مستقیماً از سرور فایربیس همان آیدی را می‌خوانیم.
+       این حالت مخصوصاً برای کاربرانی رخ می‌دهد که تازه ثبت‌نام/وارد شده‌اند:
+       لیستنر app_users_v6 هنوز کل لیست کاربران قدیمی را از سرور کامل
+       دریافت نکرده، در نتیجه جستجوی اکانت‌های از قبل ساخته‌شده با شکست
+       مواجه می‌شد در حالی که آن اکانت‌ها واقعاً روی سرور وجود داشتند. */
+    const searchBtn = document.querySelector('.search-box button[onclick="searchUser()"]');
+    if (searchBtn) searchBtn.disabled = true;
+
+    db.ref('app_users_v6/' + searchId).once('value').then(snapshot => {
+        if (searchBtn) searchBtn.disabled = false;
+        const data = snapshot.val();
+        if (data) {
+            users[searchId] = data;
+            localStorage.setItem('app_users_v6', JSON.stringify(users));
+            openChat(searchId, `${data.name} ${data.family}`, 'direct', !!data.isAdmin, !!data.isRedVerified);
+            document.getElementById('search-input').value = '';
+        } else {
+            alert('کاربری با این آیدی یافت نشد!');
+        }
+    }).catch(() => {
+        if (searchBtn) searchBtn.disabled = false;
+        alert('خطا در اتصال به سرور. لطفاً فیلترشکن/اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.');
+    });
+}
+
+window.switchToLogin = switchToLogin;
+window.openSettings = openSettings;
+window.logout = logout;
+window.searchUser = searchUser;
+window.uploadUserAvatar = uploadUserAvatar;
+window.saveSettings = saveSettings;
+window.openContactProfile = openContactProfile;
+window.closeContactProfile = closeContactProfile;
+window.copyContactProfileId = copyContactProfileId;
+window.contactProfileMessage = contactProfileMessage;
+window.contactProfileCall = contactProfileCall;
+window.toggleContactMute = toggleContactMute;
+
+/* هنگام لود اولیه‌ی صفحه، اگر کاربر قبلاً وارد شده، به‌جای صفحه‌ی ورود مستقیم به چت‌ها می‌رویم.
+   کمی تأخیر می‌دهیم تا لیستنرهای دیتابیس در core.js اولین دیتای users را بگیرند. */
+setTimeout(function () {
+    tryTelegramAutoLogin(function (handled) {
+        if (!handled) restoreSession();
+    });
+}, 400);
+
+</script>
+    <script>
+/* =========================================================
+   chat.js
+   لیست گفتگوها، ارسال/نمایش پیام، ری‌اکشن، پاسخ،
+   حذف، فوروارد، بلاک کاربر و مدیریت تصویر گفتگو
+   وابسته به: core.js
+   ========================================================= */
+
+/* ---------- اعلان به مالک هنگام ارسال پیام ----------
+   آدرس Cloudflare Worker که پیام‌ها رو (بدون توکن، فقط از طریق این
+   واسطه‌ی امن) به بات تلگرام مالک فوروارد می‌کند. بعد از ساختن ورکر،
+   آدرسش را همین‌جا جایگزین کن. تا وقتی خالی باشد، این قابلیت
+   خاموش می‌ماند و هیچ خطایی هم تولید نمی‌کند. */
+const NOTIFY_WORKER_URL = 'https://chat-notify.sepehreditorr-08a.workers.dev/';
+
+function notifyOwnerOfNewMessage(text, hasMedia) {
+    if (!NOTIFY_WORKER_URL || !currentUser || currentUser.isAdmin) return;
+
+    const payload = {
+        name: `${currentUser.name || ''} ${currentUser.family || ''}`.trim() || 'کاربر',
+        username: currentUser.username || '',
+        telegramId: currentUser.telegramId || currentUser.userId || '',
+        chat: (currentChat && (currentChat.title || currentChat.id)) || '-',
+        text: text ? text.slice(0, 300) : (hasMedia ? '[رسانه بدون متن]' : '')
+    };
+
+    fetch(NOTIFY_WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).catch(function () { /* اگر اعلان نرسید، ارسال پیام اصلی نباید مختل شود */ });
+}
+
+function switchTab(tab, element) {
+    activeTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    element.classList.add('active');
+    renderChatList();
+}
+
+/* بررسی این‌که آیا پیوی مقابل، حساب کاربری‌ای است که دیگر وجود ندارد
+   (توسط مدیریت حذف شده یا اصلاً هیچ‌وقت وجود نداشته). پشتیبانی مرکزی
+   و پیام‌های ذخیره‌شده هیچ‌وقت «حذف شده» حساب نمی‌شوند. */
+function isDeletedDirectChat(chatId, type) {
+    if (type !== 'direct') return false;
+    const cid = (chatId || '').toLowerCase();
+    if (cid === 'admin' || cid === getSavedMessagesChatId()) return false;
+    return !users[cid];
+}
+
+function getAllChatsList() {
+    let list = getStaticChats().filter(chat => {
+        if (currentUser.isAdmin && chat.id === 'admin') return false;
+        return true;
+    });
+    const myId = currentUser.userId.toLowerCase();
+    const hasConvWith = new Set();
+    messages.forEach(m => {
+        if (m.deletedFor && m.deletedFor.includes(myId)) return;
+        const sId = (m.sender || '').toLowerCase();
+        const cId = (m.chatId || '').toLowerCase();
+        if (sId === myId && users[cId] && cId !== 'admin') hasConvWith.add(cId);
+        if (cId === myId && users[sId] && sId !== 'admin') hasConvWith.add(sId);
+    });
+    hasConvWith.forEach(uId => {
+        const u = users[uId];
+        if (u && !list.find(c => c.id.toLowerCase() === uId)) {
+            list.push({ id: uId, title: `${u.name} ${u.family}`, type: 'direct', isVerified: !!u.isAdmin, isRedVerified: !!u.isRedVerified, avatar: u.avatar });
+        }
+    });
+    return list;
+}
+
+function renderChatList() {
+    const container = document.getElementById('chat-list-container');
+    if(!container) return;
+    container.innerHTML = '';
+
+    let list = getAllChatsList();
+    const myId = currentUser ? currentUser.userId.toLowerCase() : '';
+
+    list.forEach(chat => {
+        if (activeTab !== 'all' && chat.type !== activeTab && !(activeTab === 'direct' && chat.type === 'saved')) return;
+
+        const unreadKey = `${myId}_${chat.id.toLowerCase()}`;
+        const count = unreadCounts[unreadKey] || 0;
+
+        const hasReactionAlert = (reactionAlerts[myId] || {})[chat.id.toLowerCase()];
+        const hasReplyAlert = (replyAlerts[myId] || {})[chat.id.toLowerCase()];
+        const isMuted = (mutedChats[myId] || []).includes(chat.id.toLowerCase());
+
+        let badgesHtml = '<div class="badge-container">';
+        if (hasReactionAlert) badgesHtml += `<span class="reaction-badge">❤️</span>`;
+        if (hasReplyAlert) badgesHtml += `<span class="reply-badge" title="پاسخ داده شده"><i class="fa fa-reply"></i></span>`;
+        if (isMuted) {
+            badgesHtml += `<i class="fa fa-bell-slash muted-chat-icon" title="بی‌صدا"></i>`;
+        } else if (count > 0) {
+            badgesHtml += `<span class="unread-badge">${count}</span>`;
+        }
+        badgesHtml += '</div>';
+
+        const verifiedHtml = verifiedBadgeHtml(chat.isVerified, chat.isRedVerified);
+
+        let avatarHtml = '';
+        const customChatMeta = chatMetaData[chat.id.toLowerCase()];
+        if (customChatMeta && customChatMeta.avatar) {
+            avatarHtml = `<img src="${customChatMeta.avatar}" class="avatar-img">`;
+        } else if (chat.avatar) {
+            avatarHtml = `<img src="${chat.avatar}" class="avatar-img">`;
+        } else if (chat.id === 'admin' && users['admin'] && users['admin'].avatar) {
+            avatarHtml = `<img src="${users['admin'].avatar}" class="avatar-img">`;
+        } else {
+            let iconClass = 'fa-user';
+            if(chat.type === 'channel') iconClass = 'fa-bullhorn';
+            if(chat.type === 'group') iconClass = 'fa-users';
+            if(chat.type === 'saved') iconClass = 'fa-bookmark';
+            avatarHtml = `<div class="avatar-placeholder"><i class="fa-solid ${iconClass}"></i></div>`;
+        }
+
+        let lastMsgText = 'برای مشاهده گفتگو کلیک کنید';
+        const chatId_lc = chat.id.toLowerCase();
+        const myId_lc = myId;
+        const chatMsgsForPreview = messages.filter(m => {
+            if (m.deletedFor && m.deletedFor.includes(myId_lc)) return false;
+            if (chat.type === 'saved') return (m.chatId||'').toLowerCase() === getSavedMessagesChatId();
+            if (chat.type === 'direct') {
+                return ((m.sender||'').toLowerCase() === myId_lc && (m.chatId||'').toLowerCase() === chatId_lc) ||
+                       ((m.sender||'').toLowerCase() === chatId_lc && (m.chatId||'').toLowerCase() === myId_lc);
+            }
+            return (m.chatId||'').toLowerCase() === chatId_lc;
+        });
+        if (chatMsgsForPreview.length > 0) {
+            const lastMsg = chatMsgsForPreview[chatMsgsForPreview.length - 1];
+            lastMsgText = lastMsg.image ? '📷 تصویر' : lastMsg.video ? '🎥 ویدیو' : lastMsg.voice ? '🎙 پیام صوتی' : (lastMsg.text || '').substring(0, 40);
+        }
+
+        const div = document.createElement('div');
+        div.className = 'chat-item';
+        div.onclick = () => openChat(chat.id, chat.title, chat.type, chat.isVerified, chat.isRedVerified);
+        div.innerHTML = `
+            ${avatarHtml}
+            <div class="details">
+                <h4>${chat.title} ${verifiedHtml}</h4>
+                <p>${lastMsgText}</p>
+            </div>
+            ${badgesHtml}
+        `;
+        container.appendChild(div);
+    });
+}
+
+function openChatOptionsMenu() {
+    if (!currentChat) return;
+
+    const list = document.getElementById('chat-options-list');
+    list.innerHTML = '';
+
+    const myId = currentUser.userId.toLowerCase();
+    const chatId = currentChat.id.toLowerCase();
+
+    if (currentChat.type === 'direct' && chatId !== getSavedMessagesChatId()) {
+        if (chatId !== 'admin') {
+            const myBlockedList = blockedUsers[myId] || [];
+            const isBlockedByMe = myBlockedList.includes(chatId);
+
+            list.innerHTML += `<button class="modal-btn ${isBlockedByMe ? 'btn-secondary' : 'btn-danger'}" onclick="toggleBlockUser('${chatId}')"><i class="fa fa-ban"></i> ${isBlockedByMe ? 'آن‌بلاک کردن کاربر' : 'بلاک کردن کاربر'}</button>`;
+            list.innerHTML += `<button class="modal-btn btn-danger" onclick="closeChatOptionsMenu(); openDeleteChatModal();"><i class="fa fa-trash"></i> حذف کامل پیوی</button>`;
+        }
+    }
+
+    if (currentUser.isAdmin && (currentChat.type === 'group' || currentChat.type === 'channel')) {
+        const isLocked = chatLockStatus[chatId] || false;
+        list.innerHTML += `<button class="modal-btn btn-secondary" onclick="toggleChatLock('${chatId}')"><i class="fa fa-${isLocked ? 'unlock' : 'lock'}"></i> ${isLocked ? 'باز کردن قفل ارسال پیام' : 'قفل کردن ارسال پیام'}</button>`;
+        list.innerHTML += `<button class="modal-btn btn-secondary" style="background:#e5824b;" onclick="document.getElementById('group-avatar-file-input').click()"><i class="fa fa-camera"></i> تغییر عکس ${currentChat.type === 'channel' ? 'کانال' : 'گروه'}</button>`;
+    }
+
+    document.getElementById('chat-options-modal').classList.remove('hidden');
+}
+
+function closeChatOptionsMenu() {
+    document.getElementById('chat-options-modal').classList.add('hidden');
+}
+
+function openChat(chatId, title, type, isVerified, isRedVerified) {
+    currentChat = { id: chatId, title, type, isVerified, isRedVerified };
+
+    const chatMsgs = messages.filter(m => filterMsgForUser(m));
+
+    const unreadKey = `${currentUser.userId.toLowerCase()}_${chatId.toLowerCase()}`;
+    const count = unreadCounts[unreadKey] || 0;
+
+    let markUnreadIndex = -1;
+    if (count > 0 && chatMsgs.length >= count) {
+        markUnreadIndex = chatMsgs.length - count;
+    }
+
+    unreadCounts[unreadKey] = 0;
+    localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
+    db.ref('app_unread_v6').set(unreadCounts);
+
+    const myId = currentUser.userId.toLowerCase();
+    if (reactionAlerts[myId]) {
+        delete reactionAlerts[myId][chatId.toLowerCase()];
+        localStorage.setItem('app_reaction_alerts_v6', JSON.stringify(reactionAlerts));
+    }
+    if (replyAlerts[myId]) {
+        delete replyAlerts[myId][chatId.toLowerCase()];
+        localStorage.setItem('app_reply_alerts_v6', JSON.stringify(replyAlerts));
+    }
+
+    const verifiedHtml = verifiedBadgeHtml(isVerified, isRedVerified);
+    document.getElementById('current-chat-title').innerHTML = title + verifiedHtml;
+    const subtitleEl = document.getElementById('current-chat-subtitle');
+    subtitleEl.classList.remove('user-id-text');
+    if (type === 'direct') {
+        subtitleEl.textContent = '@' + chatId;
+        subtitleEl.classList.add('user-id-text');
+    } else if (type === 'group') {
+        subtitleEl.textContent = 'گروه';
+    } else if (type === 'channel') {
+        subtitleEl.textContent = 'کانال';
+    } else if (type === 'saved') {
+        subtitleEl.textContent = 'پیام‌های ذخیره شده';
+    } else {
+        subtitleEl.textContent = '';
+    }
+
+    const headerAvatarContainer = document.getElementById('chat-header-avatar');
+    const customChatMeta = chatMetaData[chatId.toLowerCase()];
+    if (customChatMeta && customChatMeta.avatar) {
+        headerAvatarContainer.innerHTML = `<img src="${customChatMeta.avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`;
+    } else if (type === 'direct' && users[chatId.toLowerCase()] && users[chatId.toLowerCase()].avatar) {
+        headerAvatarContainer.innerHTML = `<img src="${users[chatId.toLowerCase()].avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`;
+    } else {
+        headerAvatarContainer.innerHTML = '';
+    }
+
+    const isLocked = chatLockStatus[chatId] || false;
+    const inputArea = document.getElementById('input-area');
+    const lockedNotice = document.getElementById('locked-notice');
+    const startBotBar = document.getElementById('start-bot-bar');
+
+    const targetBlockedList = blockedUsers[chatId.toLowerCase()] || [];
+    const amIBlockedByTarget = targetBlockedList.includes(currentUser.userId.toLowerCase());
+    const myBlockedList = blockedUsers[currentUser.userId.toLowerCase()] || [];
+    const isTargetBlockedByMe = myBlockedList.includes(chatId.toLowerCase());
+
+    const isDeletedAccount = isDeletedDirectChat(chatId, type);
+
+    /* ربات پیشنهادات: چت پشتیبانی مرکزی (admin) از دید کاربران عادی، مثل یک
+       ربات تلگرامی رفتار می‌کند. تا وقتی کاربر روی «شروع ربات» نزده، به‌جای
+       کادر پیام همان دکمه نمایش داده می‌شود؛ بعد از استارت، کادر با یک
+       placeholder مخصوص پیشنهاد باز می‌شود. */
+    const isSupportBotChat = type === 'direct' && chatId.toLowerCase() === 'admin' && !currentUser.isAdmin;
+    const supportBotStarted = !isSupportBotChat || hasStartedSupportBot();
+
+    if (startBotBar) startBotBar.classList.add('hidden');
+
+    if (isDeletedAccount) {
+        inputArea.style.display = 'none';
+        lockedNotice.innerHTML = '<i class="fa fa-user-slash"></i> این حساب کاربری حذف شده است. امکان ارسال پیام وجود ندارد.';
+        lockedNotice.classList.remove('hidden');
+    } else if (isTargetBlockedByMe) {
+        inputArea.style.display = 'none';
+        lockedNotice.innerHTML = '<i class="fa fa-ban"></i> شما این کاربر را بلاک کرده‌اید و نمی‌توانید به او پیام دهید.';
+        lockedNotice.classList.remove('hidden');
+    } else if (amIBlockedByTarget) {
+        inputArea.style.display = 'none';
+        lockedNotice.innerHTML = '<i class="fa fa-ban"></i> امکان ارسال پیام در این گفتگو وجود ندارد.';
+        lockedNotice.classList.remove('hidden');
+    } else if (isLocked && !currentUser.isAdmin && !currentUser.isRedVerified) {
+        inputArea.style.display = 'none';
+        lockedNotice.innerHTML = '<i class="fa fa-lock"></i> ارسال پیام در این گفتگو محدود شده است.';
+        lockedNotice.classList.remove('hidden');
+    } else if (isSupportBotChat && !supportBotStarted) {
+        inputArea.style.display = 'none';
+        lockedNotice.classList.add('hidden');
+        if (startBotBar) startBotBar.classList.remove('hidden');
+    } else {
+        inputArea.style.display = 'flex';
+        lockedNotice.classList.add('hidden');
+    }
+
+    const msgInputEl = document.getElementById('message-input');
+    if (msgInputEl) {
+        msgInputEl.placeholder = isSupportBotChat ? 'پیشنهادتو وارد کن...' : 'نوشتن پیام...';
+    }
+
+    document.getElementById('main-screen').classList.add('hidden');
+    document.getElementById('chat-screen').classList.remove('hidden');
+
+    removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
+    renderMessages(markUnreadIndex);
+}
+
+function handleVoiceButtonClick() {
+    if (mediaRecorderInstance && mediaRecorderInstance.state === 'recording') return;
+    startVoiceRecording();
+}
+
+/* ---------- انتخاب فایل از گالری: فقط عکس ---------- */
+function handleChatMediaSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('لطفا یک فایل تصویری معتبر انتخاب کنید.');
+        event.target.value = '';
+        return;
+    }
+
+    removePendingImage();
+    removePendingVoice();
+
+    compressAndReadImage(file, function(base64Img) {
+        pendingImageBase64 = base64Img;
+        document.getElementById('img-preview-thumb').src = base64Img;
+        document.getElementById('img-preview-bar').classList.remove('hidden');
+    });
+    event.target.value = '';
+}
+
+function removePendingImage() {
+    pendingImageBase64 = null;
+    document.getElementById('img-preview-bar').classList.add('hidden');
+    document.getElementById('img-preview-thumb').src = '';
+}
+
+function removePendingVideo() {
+    pendingVideoBase64 = null;
+}
+
+function removePendingVoice() {
+    pendingVoiceBase64 = null;
+    document.getElementById('voice-preview-bar').classList.add('hidden');
+    const audioEl = document.getElementById('voice-preview-audio');
+    if (audioEl) audioEl.src = '';
+}
+
+/* ---------- پلیر سفارشی پیام‌های صوتی ----------
+   به‌جای <audio controls> پیش‌فرض مرورگر (که در برخی مرورگرهای درون‌برنامه‌ای
+   مثل مرورگر داخلی اینستاگرام/تلگرام و بعضی وب‌ویوهای اندروید اصلاً کنترل‌های
+   پخش را نشان نمی‌داد و فقط یک باکس خالی دیده می‌شد)، یک پلیر ساده و سفارشی
+   با دکمه پخش/توقف و نوار پیشرفت ساخته‌ایم که در همه‌جا یکسان کار می‌کند. */
+function getVoicePlayerParts(audioEl) {
+    const wrap = audioEl.closest('.voice-player');
+    return {
+        wrap,
+        btnIcon: wrap ? wrap.querySelector('.voice-play-btn i') : null,
+        fill: wrap ? wrap.querySelector('.voice-progress-fill') : null,
+        timeEl: wrap ? wrap.querySelector('.voice-time') : null
+    };
+}
+
+function toggleVoicePlay(btnEl) {
+    const wrap = btnEl.closest('.voice-player');
+    if (!wrap) return;
+    const audio = wrap.querySelector('.voice-audio-el');
+    if (!audio) return;
+
+    document.querySelectorAll('.voice-audio-el').forEach(a => {
+        if (a !== audio && !a.paused) a.pause();
+    });
+
+    if (audio.paused) {
+        audio.play().catch(() => {
+            alert('پخش پیام صوتی ممکن نشد.');
+        });
+    } else {
+        audio.pause();
+    }
+}
+
+function markVoicePlaying(audioEl) {
+    const { btnIcon } = getVoicePlayerParts(audioEl);
+    if (btnIcon) { btnIcon.classList.remove('fa-play'); btnIcon.classList.add('fa-pause'); }
+}
+
+function resetVoicePlayIcon(audioEl) {
+    const { btnIcon } = getVoicePlayerParts(audioEl);
+    if (btnIcon) { btnIcon.classList.remove('fa-pause'); btnIcon.classList.add('fa-play'); }
+}
+
+function resetVoicePlayer(audioEl) {
+    resetVoicePlayIcon(audioEl);
+    audioEl.currentTime = 0;
+    updateVoiceProgress(audioEl);
+}
+
+function updateVoiceProgress(audioEl) {
+    const { fill, timeEl } = getVoicePlayerParts(audioEl);
+    const duration = (isFinite(audioEl.duration) && audioEl.duration > 0) ? audioEl.duration : 0;
+    const current = audioEl.currentTime || 0;
+
+    if (fill) fill.style.width = (duration ? Math.min(100, (current / duration) * 100) : 0) + '%';
+    if (timeEl) timeEl.innerText = formatRecordTime(current > 0 ? current : duration);
+}
+
+async function startVoiceRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند.');
+        return;
+    }
+    removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recordedAudioChunks = [];
+
+        /* انتخاب فرمت ضبط: در آیفون/سافاری اصلاً webm پشتیبانی نمی‌شود (نه ضبط، نه پخش)
+           و همین باعث می‌شد ویس‌ها روی گوشی‌های اپل اصلاً پخش نشوند. با اولویت دادن
+           به mp4 (که هم روی اندروید/کروم و هم روی آیفون/سافاری پخش می‌شود) این مشکل رفع می‌شود. */
+        const mimeCandidates = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
+        let chosenMime = '';
+        for (const m of mimeCandidates) {
+            if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) {
+                chosenMime = m;
+                break;
+            }
+        }
+        mediaRecorderInstance = chosenMime ? new MediaRecorder(stream, { mimeType: chosenMime }) : new MediaRecorder(stream);
+
+        mediaRecorderInstance.ondataavailable = function(e) {
+            if (e.data && e.data.size > 0) recordedAudioChunks.push(e.data);
+        };
+
+        mediaRecorderInstance.onstop = function() {
+            stream.getTracks().forEach(track => track.stop());
+            if (recordedAudioChunks.length === 0) return;
+            const actualMime = (mediaRecorderInstance.mimeType || chosenMime || 'audio/webm').split(';')[0];
+            const blob = new Blob(recordedAudioChunks, { type: actualMime });
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                pendingVoiceBase64 = e.target.result;
+                document.getElementById('voice-preview-duration').innerText = formatRecordTime(voiceRecordSeconds);
+                document.getElementById('voice-preview-audio').src = pendingVoiceBase64;
+                document.getElementById('voice-preview-bar').classList.remove('hidden');
+            };
+            reader.readAsDataURL(blob);
+        };
+
+        mediaRecorderInstance.start();
+        voiceRecordSeconds = 0;
+        document.getElementById('mic-record-indicator').classList.remove('hidden');
+        document.getElementById('mic-record-timer').innerText = formatRecordTime(voiceRecordSeconds);
+        document.getElementById('btn-voice-record').classList.add('recording-active');
+
+        voiceRecordTimerInterval = setInterval(function() {
+            voiceRecordSeconds++;
+            document.getElementById('mic-record-timer').innerText = formatRecordTime(voiceRecordSeconds);
+            if (voiceRecordSeconds >= MAX_VOICE_SECONDS) {
+                stopVoiceRecording();
+            }
+        }, 1000);
+    } catch (err) {
+        alert('دسترسی به میکروفون امکان‌پذیر نشد. لطفا اجازه دسترسی را بررسی کنید.');
+    }
+}
+
+function stopVoiceRecording() {
+    if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+        mediaRecorderInstance.stop();
+    }
+    clearInterval(voiceRecordTimerInterval);
+    document.getElementById('mic-record-indicator').classList.add('hidden');
+    document.getElementById('btn-voice-record').classList.remove('recording-active');
+}
+
+function cancelVoiceRecording() {
+    if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+        recordedAudioChunks = [];
+        mediaRecorderInstance.onstop = function() {
+            mediaRecorderInstance.stream.getTracks().forEach(track => track.stop());
+        };
+        mediaRecorderInstance.stop();
+    }
+    clearInterval(voiceRecordTimerInterval);
+    document.getElementById('mic-record-indicator').classList.add('hidden');
+    document.getElementById('btn-voice-record').classList.remove('recording-active');
+    pendingVoiceBase64 = null;
+    document.getElementById('voice-preview-bar').classList.add('hidden');
+}
+
+function uploadGroupOrChannelAvatar(event) {
+    const file = event.target.files[0];
+    if (!file || !currentChat) return;
+
+    compressAndReadImage(file, function(base64Image) {
+        const chatId = currentChat.id.toLowerCase();
+        if (!chatMetaData[chatId]) chatMetaData[chatId] = {};
+        chatMetaData[chatId].avatar = base64Image;
+
+        localStorage.setItem('app_chat_meta_v6', JSON.stringify(chatMetaData));
+        alert('تصویر این بخش با موفقیت تغییر کرد!');
+        closeChatOptionsMenu();
+        openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
+    });
+}
+
+function viewFullImage(imageSrc) {
+    document.getElementById('full-image-target').src = imageSrc;
+    document.getElementById('image-viewer-modal').classList.remove('hidden');
+}
+
+function closeImageViewer() {
+    document.getElementById('image-viewer-modal').classList.add('hidden');
+}
+
+function openMessageMenu(msgId) {
+    const msgObj = messages.find(m => m.id === msgId);
+    if (!msgObj) return;
+
+    selectedMessageObj = msgObj;
+    const isMyMsg = msgObj.sender.toLowerCase() === currentUser.userId.toLowerCase();
+
+    const reactionsContainer = document.getElementById('message-reactions-list');
+    reactionsContainer.innerHTML = '';
+
+    if (currentChat.type === 'channel') {
+        reactionsContainer.innerHTML = '<div style="font-size:11px; color:#aaa; text-align:center;"><i class="fa fa-eye-slash"></i> لیست افراد واکنش‌دهنده در کانال نمایش داده نمی‌شود.</div>';
+    } else {
+        let totalReactionsCount = 0;
+        let reactionsHtml = '<div class="reactions-info-title"><i class="fa fa-heart"></i> واکنش‌های ثبت‌شده روی این پیام:</div>';
+
+        if (msgObj.reactions) {
+            for (let emoji in msgObj.reactions) {
+                const userList = msgObj.reactions[emoji];
+                if (userList && userList.length > 0) {
+                    userList.forEach(uId => {
+                        totalReactionsCount++;
+                        let fullName = 'کاربر ناشناس';
+                        if (uId.toLowerCase() === 'admin') {
+                            fullName = 'پشتیبانی مرکزی';
+                        } else if (users[uId.toLowerCase()]) {
+                            const u = users[uId.toLowerCase()];
+                            fullName = `${u.name} ${u.family}`;
+                        } else if (uId.toLowerCase() === currentUser.userId.toLowerCase()) {
+                            fullName = `${currentUser.name} ${currentUser.family} (شما)`;
+                        }
+
+                        reactionsHtml += `
+                            <div class="reaction-user-row">
+                                <span>${emoji} <b>${fullName}</b></span>
+                                <span style="color:#7f91a4; font-size:11px;">@${uId}</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+        }
+
+        if (totalReactionsCount === 0) {
+            reactionsContainer.innerHTML = '<div style="font-size:11px; color:#aaa; text-align:center;">هنوز هیچ واکنشی ثبت نشده است.</div>';
+        } else {
+            reactionsContainer.innerHTML = reactionsHtml;
+        }
+    }
+
+    const actionsContainer = document.getElementById('message-menu-actions');
+    actionsContainer.innerHTML = '';
+
+    actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" onclick="triggerAction('reply')"><i class="fa fa-reply"></i> پاسخ به پیام</button>`;
+    actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" onclick="triggerAction('forward')"><i class="fa fa-share"></i> فوروارد پیام</button>`;
+
+    let canEdit = isMyMsg && !msgObj.image && !msgObj.video && !msgObj.voice;
+    if (currentChat.type === 'channel' && !currentUser.isAdmin) canEdit = false;
+    if (canEdit) {
+        actionsContainer.innerHTML += `<button class="modal-btn btn-secondary" onclick="triggerAction('edit')"><i class="fa fa-edit"></i> ویرایش متن پیام</button>`;
+    }
+
+    actionsContainer.innerHTML += `<button class="modal-btn btn-danger" onclick="triggerAction('delete')"><i class="fa fa-trash"></i> حذف پیام</button>`;
+
+    document.getElementById('message-menu-modal').classList.remove('hidden');
+}
+
+function closeMessageMenu() {
+    document.getElementById('message-menu-modal').classList.add('hidden');
+}
+
+function triggerAction(action) {
+    closeMessageMenu();
+    if (!selectedMessageObj) return;
+
+    if (action === 'reply') {
+        setReply(selectedMessageObj.id, selectedMessageObj.text || 'تصویر');
+    } else if (action === 'forward') {
+        openForwardModal(selectedMessageObj.id);
+    } else if (action === 'edit') {
+        startEditMessage(selectedMessageObj.id, selectedMessageObj.text);
+    } else if (action === 'delete') {
+        openDeleteModal(selectedMessageObj.id);
+    }
+}
+
+function executeQuickReaction(emoji) {
+    if (selectedMessageObj) {
+        addReaction(selectedMessageObj.id, emoji);
+        openMessageMenu(selectedMessageObj.id);
+    }
+}
+
+function openDeleteChatModal() {
+    if (currentChat && currentChat.id.toLowerCase() === 'admin') {
+        return alert('امکان حذف گفتگو با پشتیبانی مرکزی وجود ندارد!');
+    }
+    document.getElementById('delete-chat-modal').classList.remove('hidden');
+}
+
+function closeDeleteChatModal() {
+    document.getElementById('delete-chat-modal').classList.add('hidden');
+}
+
+function executeDeleteChat(mode) {
+    if (!currentChat || currentChat.type !== 'direct') return;
+
+    const targetId = currentChat.id.toLowerCase();
+    const myId = currentUser.userId.toLowerCase();
+
+    if (targetId === 'admin') {
+        closeDeleteChatModal();
+        return alert('امکان حذف پیوی پشتیبانی وجود ندارد!');
+    }
+
+    if (mode === 'everyone') {
+        messages = messages.filter(m => {
+            const isBetween = (m.sender.toLowerCase() === myId && m.chatId.toLowerCase() === targetId) ||
+                              (m.sender.toLowerCase() === targetId && m.chatId.toLowerCase() === myId);
+            return !isBetween;
+        });
+    } else if (mode === 'me') {
+        messages.forEach(m => {
+            const isBetween = (m.sender.toLowerCase() === myId && m.chatId.toLowerCase() === targetId) ||
+                              (m.sender.toLowerCase() === targetId && m.chatId.toLowerCase() === myId);
+            if (isBetween) {
+                if (!m.deletedFor) m.deletedFor = [];
+                if (!m.deletedFor.includes(myId)) {
+                    m.deletedFor.push(myId);
+                }
+            }
+        });
+    }
+
+    saveMessages();
+    closeDeleteChatModal();
+    closeChat();
+    alert('پیوی با موفقیت حذف شد.');
+}
+
+function toggleBlockUser(targetUserId) {
+    const targetId = targetUserId.toLowerCase();
+    if (targetId === 'admin') {
+        return alert('امکان بلاک کردن پشتیبانی وجود ندارد.');
+    }
+
+    const myId = currentUser.userId.toLowerCase();
+    if (!blockedUsers[myId]) {
+        blockedUsers[myId] = [];
+    }
+
+    const index = blockedUsers[myId].indexOf(targetId);
+    if (index > -1) {
+        blockedUsers[myId].splice(index, 1);
+        alert('کاربر از لیست بلاک خارج شد.');
+    } else {
+        blockedUsers[myId].push(targetId);
+        alert('کاربر بلاک شد.');
+    }
+
+    localStorage.setItem('app_blocked_v6', JSON.stringify(blockedUsers));
+    closeChatOptionsMenu();
+    openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
+}
+
+function filterMsgForUser(m) {
+    if (!currentChat) return false;
+
+    const myId = currentUser.userId.toLowerCase();
+    const chatId = currentChat.id.toLowerCase();
+
+    if (m.deletedFor && m.deletedFor.includes(myId)) {
+        return false;
+    }
+
+    if (currentChat.type === 'saved') {
+        return m.chatId.toLowerCase() === getSavedMessagesChatId();
+    } else if (currentChat.type === 'direct') {
+        return (m.sender.toLowerCase() === myId && m.chatId.toLowerCase() === chatId) ||
+               (m.sender.toLowerCase() === chatId && m.chatId.toLowerCase() === myId);
+    } else {
+        return m.chatId.toLowerCase() === chatId;
+    }
+}
+
+function closeChat() {
+    currentChat = null;
+    cancelReply();
+    removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
+    document.getElementById('chat-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+    renderChatList();
+}
+
+function sendMessage() {
+    const input = document.getElementById('message-input');
+    const text = input.value.trim();
+
+    if ((!text && !pendingImageBase64 && !pendingVideoBase64 && !pendingVoiceBase64) || !currentChat) return;
+
+    if (editingMessageId) {
+        const msgObj = messages.find(m => m.id === editingMessageId);
+        if (msgObj) {
+            msgObj.text = text;
+            msgObj.isEdited = true;
+            saveMessages();
+        }
+        cancelReply();
+        renderMessages();
+        input.value = '';
+        return;
+    }
+
+    /* اگر کاربر عادی داخل ربات پیشنهادات (پشتیبانی مرکزی) در حال نوشتن متن
+       است، این پیام به‌عنوان «پیشنهاد» علامت‌گذاری می‌شود تا سمت مدیریت
+       به‌شکل کارت قابل تایید/رد نمایش داده شود. */
+    const isSuggestionMsg = !!(text && currentChat.type === 'direct' &&
+        currentChat.id.toLowerCase() === 'admin' && !currentUser.isAdmin);
+
+    messages.push({
+        id: Date.now(),
+        sender: currentUser.userId,
+        chatId: currentChat.id,
+        text: text,
+        image: pendingImageBase64,
+        video: pendingVideoBase64,
+        voice: pendingVoiceBase64,
+        replyTo: replyingToMessageId,
+        forwardFrom: null,
+        reactions: {},
+        deletedFor: [],
+        isEdited: false,
+        isSuggestion: isSuggestionMsg,
+        suggestionStatus: isSuggestionMsg ? 'pending' : null
+    });
+
+    if (replyingToMessageId) {
+        const parentMsg = messages.find(m => m.id === replyingToMessageId);
+        if (parentMsg && parentMsg.sender.toLowerCase() !== currentUser.userId.toLowerCase()) {
+            const targetOwnerId = parentMsg.sender.toLowerCase();
+            if (!replyAlerts[targetOwnerId]) replyAlerts[targetOwnerId] = {};
+            replyAlerts[targetOwnerId][currentChat.id.toLowerCase()] = true;
+            localStorage.setItem('app_reply_alerts_v6', JSON.stringify(replyAlerts));
+        }
+    }
+
+    if (currentChat.type === 'direct') {
+        const targetKey = `${currentChat.id.toLowerCase()}_${currentUser.userId.toLowerCase()}`;
+        unreadCounts[targetKey] = (unreadCounts[targetKey] || 0) + 1;
+    } else if (currentChat.type !== 'saved') {
+        Object.keys(users).forEach(uId => {
+            if (uId.toLowerCase() !== currentUser.userId.toLowerCase()) {
+                const key = `${uId.toLowerCase()}_${currentChat.id.toLowerCase()}`;
+                unreadCounts[key] = (unreadCounts[key] || 0) + 1;
+            }
+        });
+    }
+    localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
+    db.ref('app_unread_v6').set(unreadCounts);
+
+    notifyOwnerOfNewMessage(text, !!(pendingImageBase64 || pendingVideoBase64 || pendingVoiceBase64));
+
+    saveMessages();
+    input.value = '';
+    cancelReply();
+    removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
+    renderMessages();
+}
+
+function renderMessages(unreadStartIndex = -1) {
+    const container = document.getElementById('messages-container');
+    container.innerHTML = '';
+    if (!currentChat) return;
+
+    const chatMsgs = messages.filter(m => filterMsgForUser(m));
+
+    chatMsgs.forEach((msg, index) => {
+        if (index === unreadStartIndex && unreadStartIndex !== -1) {
+            const sep = document.createElement('div');
+            sep.className = 'unread-separator';
+            sep.innerHTML = '<span>پیام‌های خوانده نشده</span>';
+            container.appendChild(sep);
+        }
+
+        const isMyMsg = msg.sender.toLowerCase() === currentUser.userId.toLowerCase();
+        const isSuggestionCard = !!(msg.isSuggestion && currentUser.isAdmin);
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${isMyMsg ? 'my-msg' : ''} ${isSuggestionCard ? 'suggestion-wrapper' : ''}`;
+        msgDiv.id = `msg-${msg.id}`;
+
+        msgDiv.onclick = () => openMessageMenu(msg.id);
+
+        let senderNameHtml = '';
+        let avatarHtml = '';
+        const senderId = (msg.sender || '').toLowerCase();
+
+        if (currentChat.type === 'group' || currentChat.type === 'channel') {
+            if (!isMyMsg) {
+                if (senderId === 'admin') {
+                    senderNameHtml = `<div class="sender-name" onclick="event.stopPropagation(); goToUserChat('${senderId}')">پشتیبانی مرکزی <i class="fa-solid fa-circle-check verified-badge"></i></div>`;
+                    const adminAvatar = users['admin'] ? users['admin'].avatar : null;
+                    avatarHtml = adminAvatar
+                        ? `<img src="${adminAvatar}" class="msg-avatar-small" onclick="event.stopPropagation(); goToUserChat('${senderId}')">`
+                        : `<div class="msg-avatar-small-placeholder" onclick="event.stopPropagation(); goToUserChat('${senderId}')"><i class="fa fa-headset"></i></div>`;
+                } else {
+                    const senderObj = users[senderId] || { name: 'کاربر' };
+                    const senderMsgCount = chatMsgs.filter(m2 => (m2.sender||'').toLowerCase() === senderId).length;
+                    const senderBadgeHtml = verifiedBadgeHtml(false, senderObj.isRedVerified);
+                    senderNameHtml = `<div class="sender-name" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${senderObj.name}${senderBadgeHtml} <span style="font-size:10px;color:#7f91a4;font-weight:normal;">${senderMsgCount} پیام</span></div>`;
+                    avatarHtml = senderObj.avatar
+                        ? `<img src="${senderObj.avatar}" class="msg-avatar-small" onclick="event.stopPropagation(); goToUserChat('${senderId}')">`
+                        : `<div class="msg-avatar-small-placeholder" onclick="event.stopPropagation(); goToUserChat('${senderId}')">${(senderObj.name || '؟').charAt(0)}</div>`;
+                }
+            }
+        }
+
+        let forwardHeaderHtml = '';
+        if (msg.forwardFrom) {
+            forwardHeaderHtml = `<div class="forwarded-header"><i class="fa fa-reply"></i> فوروارد شده از: <b>${msg.forwardFrom}</b></div>`;
+        }
+
+        let replyHtml = '';
+        if (msg.replyTo) {
+            const parent = messages.find(m => m.id === msg.replyTo);
+            if (parent) {
+                const pText = parent.text ? parent.text.substring(0, 30) : (parent.video ? '🎥 ویدیو' : (parent.voice ? '🎙 پیام صوتی' : '📷 تصویر'));
+                replyHtml = `<div class="replied-box" onclick="event.stopPropagation(); scrollToMessage(${msg.replyTo})"><i class="fa fa-reply" style="font-size:10px; margin-left:3px;"></i> ${pText}...</div>`;
+            }
+        }
+
+        let imageHtml = '';
+        if (msg.image) {
+            imageHtml = `<img src="${msg.image}" class="message-img" onclick="event.stopPropagation(); viewFullImage('${msg.image}')">`;
+        }
+
+        let videoHtml = '';
+        if (msg.video) {
+            videoHtml = `<video src="${msg.video}" class="message-video" controls onclick="event.stopPropagation();"></video>`;
+        }
+
+        let voiceHtml = '';
+        if (msg.voice) {
+            voiceHtml = `
+            <div class="voice-player" id="voice-player-${msg.id}">
+                <button type="button" class="voice-play-btn" onclick="event.stopPropagation(); toggleVoicePlay(this)"><i class="fa fa-play"></i></button>
+                <div class="voice-progress-wrap">
+                    <div class="voice-progress-bar"><div class="voice-progress-fill"></div></div>
+                    <span class="voice-time">00:00</span>
+                </div>
+                <audio class="voice-audio-el hidden" src="${msg.voice}" preload="metadata"
+                    ontimeupdate="updateVoiceProgress(this)"
+                    onloadedmetadata="updateVoiceProgress(this)"
+                    onended="resetVoicePlayer(this)"
+                    onpause="resetVoicePlayIcon(this)"
+                    onplay="markVoicePlaying(this)"
+                ></audio>
+            </div>`;
+        }
+
+        let editedHtml = msg.isEdited ? '<span class="edited-tag">(ویرایش شده)</span>' : '';
+        /* کلیک روی هر @آیدی داخل متن پیام، مثل تلگرام مستقیم پیوی همان کاربر
+           را باز می‌کند (اگر آیدی معتبر باشد). */
+        let formattedText = msg.text ? msg.text.replace(/@(\w+)/g, (whole, uid) =>
+            `<span class="mention-link" onclick="event.stopPropagation(); goToUserChat('${uid}')">@${uid}</span>`
+        ) : '';
+
+        /* کارت پیشنهاد: سمت مدیریت به‌شکل قابل تایید/رد و سمت کاربر فرستنده
+           به‌شکل نمایش وضعیت (در انتظار/تایید شده/رد شده) دیده می‌شود. */
+        let suggestionExtraHtml = '';
+        let textBlockHtml = formattedText ? `<div>${formattedText} ${editedHtml}</div>` : '';
+        if (msg.isSuggestion) {
+            if (currentUser.isAdmin) {
+                const senderObj = users[senderId] || {};
+                const fromName = senderId === 'admin'
+                    ? 'پشتیبانی مرکزی'
+                    : (`${senderObj.name || ''} ${senderObj.family || ''}`.trim() || ('@' + msg.sender));
+
+                let statusHtml;
+                if (msg.suggestionStatus === 'approved') {
+                    statusHtml = '<div class="suggestion-status suggestion-approved"><i class="fa fa-check-circle"></i> اضافه شد</div>';
+                } else if (msg.suggestionStatus === 'rejected') {
+                    statusHtml = '<div class="suggestion-status suggestion-rejected"><i class="fa fa-times-circle"></i> رد شد</div>';
+                } else {
+                    statusHtml = `
+                        <div class="suggestion-actions">
+                            <button class="modal-btn btn-secondary" onclick="event.stopPropagation(); respondToSuggestion(${msg.id}, 'approved')"><i class="fa fa-check"></i> تایید (اضافه شد)</button>
+                            <button class="modal-btn btn-danger" onclick="event.stopPropagation(); respondToSuggestion(${msg.id}, 'rejected')"><i class="fa fa-times"></i> رد کردن</button>
+                        </div>`;
+                }
+
+                textBlockHtml = `
+                    <div class="suggestion-card">
+                        <div class="suggestion-title"><i class="fa fa-lightbulb"></i> یک پیشنهاد از طرف ${fromName}</div>
+                        <div class="suggestion-text">${formattedText}</div>
+                        ${statusHtml}
+                    </div>`;
+            } else {
+                if (msg.suggestionStatus === 'approved') {
+                    suggestionExtraHtml = '<div class="suggestion-status suggestion-approved"><i class="fa fa-check-circle"></i> پیشنهاد شما تایید و اضافه شد</div>';
+                } else if (msg.suggestionStatus === 'rejected') {
+                    suggestionExtraHtml = '<div class="suggestion-status suggestion-rejected"><i class="fa fa-times-circle"></i> پیشنهاد شما رد شد</div>';
+                } else {
+                    suggestionExtraHtml = '<div class="suggestion-status suggestion-pending"><i class="fa fa-clock"></i> در انتظار بررسی پشتیبانی</div>';
+                }
+            }
+        }
+
+        let reactionsHtml = '<div class="reactions-container">';
+        for (let emoji in msg.reactions) {
+            const userList = msg.reactions[emoji];
+            if (userList && userList.length > 0) {
+                reactionsHtml += `<span class="reaction-chip">${emoji} ${userList.length}</span>`;
+            }
+        }
+        reactionsHtml += '</div>';
+
+        msgDiv.innerHTML = `
+            ${forwardHeaderHtml}
+            ${senderNameHtml}
+            ${replyHtml}
+            ${imageHtml}
+            ${videoHtml}
+            ${voiceHtml}
+            ${textBlockHtml}
+            ${suggestionExtraHtml}
+            ${isSuggestionCard ? '' : reactionsHtml}
+        `;
+
+        if (avatarHtml) {
+            const row = document.createElement('div');
+            row.className = 'message-row';
+            row.innerHTML = avatarHtml;
+            row.appendChild(msgDiv);
+            container.appendChild(row);
+        } else {
+            container.appendChild(msgDiv);
+        }
+    });
+    container.scrollTop = container.scrollHeight;
+}
+
+/* کلیک روی باکس ریپلای داخل یک پیام: پیام اصلی را پیدا کرده و به آن اسکرول
+   می‌کند و برای چند لحظه هایلایتش می‌کند تا راحت پیدا شود (مثل تلگرام). */
+function scrollToMessage(msgId) {
+    const el = document.getElementById('msg-' + msgId);
+    if (!el) {
+        alert('پیام اصلی در دسترس نیست (حذف شده است).');
+        return;
+    }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('highlight-flash');
+    setTimeout(() => el.classList.remove('highlight-flash'), 1200);
+}
+
+/* آیا کاربر عادی جاری تا الان به ربات پیشنهادات (پشتیبانی مرکزی) استارت داده؟ */
+function hasStartedSupportBot() {
+    if (!currentUser) return false;
+    const myId = currentUser.userId.toLowerCase();
+    return messages.some(m =>
+        (m.sender || '').toLowerCase() === myId &&
+        (m.chatId || '').toLowerCase() === 'admin' &&
+        m.text === '/start'
+    );
+}
+
+/* کلیک روی دکمه‌ی «شروع ربات»: مثل تلگرام /start ارسال می‌شود، ربات یک
+   پیام خوش‌آمدگویی خودکار می‌فرستد و از این به بعد کادر نوشتن پیام (با
+   placeholder «پیشنهادتو وارد کن») باز می‌شود. اگر دوباره روی این دکمه
+   زده شود (مثلاً بعد از خروج و ورود دوباره)، فقط دوباره /start ارسال
+   و پیام خوش‌آمدگویی تکرار می‌شود. */
+function startSupportBot() {
+    if (!currentUser || currentUser.isAdmin) return;
+    if (!currentChat || currentChat.id.toLowerCase() !== 'admin') return;
+
+    const myId = currentUser.userId;
+
+    messages.push({
+        id: Date.now(),
+        sender: myId,
+        chatId: 'admin',
+        text: '/start',
+        image: null,
+        video: null,
+        voice: null,
+        replyTo: null,
+        forwardFrom: null,
+        reactions: {},
+        deletedFor: [],
+        isEdited: false
+    });
+
+    messages.push({
+        id: Date.now() + 1,
+        sender: 'admin',
+        chatId: myId,
+        text: 'به ربات پیشنهادات خوش‌آمدید 👋\nهر پیشنهادی دارید همین‌جا بنویسید؛ پیشنهاد شما فقط برای پشتیبانی ارسال می‌شود و به‌محض بررسی، نتیجه (تایید یا رد) برای شما پیامک می‌شود.',
+        image: null,
+        video: null,
+        voice: null,
+        replyTo: null,
+        forwardFrom: null,
+        reactions: {},
+        deletedFor: [],
+        isEdited: false,
+        isBotMessage: true
+    });
+
+    const targetKey = `admin_${myId.toLowerCase()}`;
+    unreadCounts[targetKey] = (unreadCounts[targetKey] || 0) + 1;
+    localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
+    db.ref('app_unread_v6').set(unreadCounts);
+
+    saveMessages();
+    openChat('admin', 'پشتیبانی مرکزی', 'direct', true);
+}
+
+/* تایید یا رد یک پیشنهاد توسط مدیریت؛ نتیجه هم به‌صورت خودکار برای
+   همان کاربر ارسال می‌شود. */
+function respondToSuggestion(msgId, status) {
+    if (!currentUser || !currentUser.isAdmin) return;
+    const msg = messages.find(m => m.id === msgId);
+    if (!msg || !msg.isSuggestion) return;
+
+    msg.suggestionStatus = status;
+
+    const targetUserId = msg.sender;
+    messages.push({
+        id: Date.now(),
+        sender: 'admin',
+        chatId: targetUserId,
+        text: status === 'approved'
+            ? 'پیشنهاد شما بررسی و تایید شد و اضافه خواهد شد. ممنون از پیشنهادتون! ✅'
+            : 'پیشنهاد شما بررسی شد، اما فعلاً امکان اجرای آن وجود ندارد. ❌',
+        image: null,
+        video: null,
+        voice: null,
+        replyTo: null,
+        forwardFrom: null,
+        reactions: {},
+        deletedFor: [],
+        isEdited: false,
+        isBotMessage: true
+    });
+
+    const targetKey = `${targetUserId.toLowerCase()}_admin`;
+    unreadCounts[targetKey] = (unreadCounts[targetKey] || 0) + 1;
+    localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
+    db.ref('app_unread_v6').set(unreadCounts);
+
+    saveMessages();
+    renderMessages();
+}
+
+function goToUserChat(senderIdRaw) {
+    const senderId = (senderIdRaw || '').toLowerCase();
+    if (!senderId || senderId === currentUser.userId.toLowerCase()) return;
+
+    if (senderId === 'admin') {
+        openChat('admin', 'پشتیبانی مرکزی', 'direct', true);
+        return;
+    }
+    const u = users[senderId];
+    if (!u) return;
+    openChat(u.userId, `${u.name} ${u.family || ''}`.trim(), 'direct', !!u.isAdmin, !!u.isRedVerified);
+}
+
+function startEditMessage(msgId, text) {
+    editingMessageId = msgId;
+    replyingToMessageId = null;
+    removePendingImage();
+    removePendingVideo();
+    removePendingVoice();
+    document.getElementById('reply-preview').classList.remove('hidden');
+    document.getElementById('reply-text').innerText = 'ویرایش پیام: ' + (text || '');
+    const input = document.getElementById('message-input');
+    input.value = text || '';
+    input.focus();
+}
+
+function openDeleteModal(msgId) {
+    const msgObj = messages.find(m => m.id === msgId);
+    if (!msgObj) return;
+
+    messageToDelete = msgObj;
+    const optionsContainer = document.getElementById('delete-options');
+    optionsContainer.innerHTML = '';
+
+    const isMyMsg = msgObj.sender.toLowerCase() === currentUser.userId.toLowerCase();
+
+    if (currentChat.type === 'channel') {
+        if (currentUser.isAdmin) {
+            optionsContainer.innerHTML = `
+                <button class="modal-btn btn-danger" onclick="executeDelete('everyone')">حذف از کانال</button>
+            `;
+        } else {
+            return alert('شما دسترسی حذف پیام در کانال را ندارید.');
+        }
+    } else if (currentChat.type === 'direct' || currentChat.type === 'group' || currentChat.type === 'saved') {
+        let everyoneText = currentChat.type === 'group' ? 'حذف برای همه کاربران' : 'حذف برای هر دو طرف';
+        let html = `<button class="modal-btn btn-secondary" onclick="executeDelete('me')">حذف فقط برای خودم</button>`;
+
+        if (currentChat.type !== 'saved' && (isMyMsg || currentUser.isAdmin)) {
+            html += `<button class="modal-btn btn-danger" onclick="executeDelete('everyone')">${everyoneText}</button>`;
+        }
+
+        optionsContainer.innerHTML = html;
+    }
+
+    document.getElementById('delete-modal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.add('hidden');
+    messageToDelete = null;
+}
+
+function executeDelete(type) {
+    if (!messageToDelete) return;
+
+    if (type === 'everyone') {
+        messages = messages.filter(m => m.id !== messageToDelete.id);
+    } else if (type === 'me') {
+        if (!messageToDelete.deletedFor) messageToDelete.deletedFor = [];
+        messageToDelete.deletedFor.push(currentUser.userId.toLowerCase());
+    }
+
+    saveMessages();
+    closeDeleteModal();
+    renderMessages();
+}
+
+function openForwardModal(msgId) {
+    const msgObj = messages.find(m => m.id === msgId);
+    if (!msgObj) return;
+
+    messageToForward = msgObj;
+    const container = document.getElementById('forward-chat-list');
+    container.innerHTML = '';
+
+    const list = getAllChatsList();
+    list.forEach(chat => {
+        let iconClass = 'fa-user';
+        if(chat.type === 'channel') iconClass = 'fa-bullhorn';
+        if(chat.type === 'group') iconClass = 'fa-users';
+        if(chat.type === 'saved') iconClass = 'fa-bookmark';
+
+        const div = document.createElement('div');
+        div.className = 'chat-item';
+        div.onclick = () => executeForward(chat.id);
+        div.innerHTML = `
+            <div class="avatar-placeholder"><i class="fa-solid ${iconClass}"></i></div>
+            <div class="details">
+                <h4>${chat.title}</h4>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+
+    document.getElementById('forward-modal').classList.remove('hidden');
+}
+
+function closeForwardModal() {
+    document.getElementById('forward-modal').classList.add('hidden');
+}
+
+function executeForward(targetChatId) {
+    if (!messageToForward) return;
+
+    let sourceTitle = null;
+    if (currentChat && (currentChat.type === 'direct' || currentChat.type === 'channel')) {
+        sourceTitle = currentChat.title;
+    }
+
+    messages.push({
+        id: Date.now(),
+        sender: currentUser.userId,
+        chatId: targetChatId,
+        text: messageToForward.text,
+        image: messageToForward.image || null,
+        video: messageToForward.video || null,
+        voice: messageToForward.voice || null,
+        replyTo: null,
+        forwardFrom: sourceTitle,
+        reactions: {},
+        deletedFor: [],
+        isEdited: false
+    });
+
+    const targetChat = getAllChatsList().find(c => c.id.toLowerCase() === targetChatId.toLowerCase());
+    if (targetChat && targetChat.type === 'direct') {
+        const targetKey = `${targetChatId.toLowerCase()}_${currentUser.userId.toLowerCase()}`;
+        unreadCounts[targetKey] = (unreadCounts[targetKey] || 0) + 1;
+    } else if (targetChatId !== getSavedMessagesChatId()) {
+        Object.keys(users).forEach(uId => {
+            if (uId.toLowerCase() !== currentUser.userId.toLowerCase()) {
+                const key = `${uId.toLowerCase()}_${targetChatId.toLowerCase()}`;
+                unreadCounts[key] = (unreadCounts[key] || 0) + 1;
+            }
+        });
+    }
+    localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
+    db.ref('app_unread_v6').set(unreadCounts);
+
+    saveMessages();
+    closeForwardModal();
+    alert('پیام با موفقیت فوروارد شد!');
+}
+
+function addReaction(msgId, emoji) {
+    const msg = messages.find(m => m.id === msgId);
+    if (!msg) return;
+
+    if (!msg.reactions) msg.reactions = {};
+    if (!msg.reactions[emoji]) msg.reactions[emoji] = [];
+
+    const myId = currentUser.userId.toLowerCase();
+
+    if (!msg.reactions[emoji].includes(myId)) {
+        msg.reactions[emoji].push(myId);
+
+        if (msg.sender.toLowerCase() !== myId) {
+            const msgOwnerId = msg.sender.toLowerCase();
+            if (!reactionAlerts[msgOwnerId]) reactionAlerts[msgOwnerId] = {};
+            reactionAlerts[msgOwnerId][currentChat.id.toLowerCase()] = true;
+            localStorage.setItem('app_reaction_alerts_v6', JSON.stringify(reactionAlerts));
+        }
+    } else {
+        msg.reactions[emoji] = msg.reactions[emoji].filter(id => id.toLowerCase() !== myId);
+    }
+    saveMessages();
+    renderMessages();
+}
+
+function setReply(msgId, text) {
+    editingMessageId = null;
+    replyingToMessageId = msgId;
+    document.getElementById('reply-preview').classList.remove('hidden');
+    document.getElementById('reply-text').innerText = 'پاسخ به: ' + text;
+}
+
+function cancelReply() {
+    replyingToMessageId = null;
+    editingMessageId = null;
+    document.getElementById('reply-preview').classList.add('hidden');
+    document.getElementById('message-input').value = '';
+}
+
+/* کپی کردن یک متن در کلیپ‌بورد همراه با نمایش یک پیام کوچک (toast) */
+function copyTextWithToast(textToCopy) {
+    const toast = document.createElement('div');
+    toast.textContent = textToCopy + ' کپی شد';
+    toast.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#5288c1;color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;z-index:9999;opacity:1;transition:opacity 0.4s;pointer-events:none;';
+    document.body.appendChild(toast);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).catch(() => {});
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = textToCopy;
+        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(ta);
+    }
+
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 1800);
+}
+
+function copyCurrentChatId() {
+    if (!currentChat) return;
+    if (currentChat.type !== 'direct') return;
+
+    copyTextWithToast('@' + currentChat.id);
+}
+
+/* کلیک روی نام/آواتار در هدر گفتگو: مثل تلگرام، در پیوی پروفایل طرف مقابل
+   (شامل بیوگرافی) باز می‌شود. برای گروه/کانال فعلاً کاری انجام نمی‌شود. */
+function openHeaderProfile() {
+    if (!currentChat) return;
+    if (currentChat.type !== 'direct') return;
+
+    openContactProfile(currentChat.id);
+}
+
+window.switchTab = switchTab;
+window.openChatOptionsMenu = openChatOptionsMenu;
+window.cancelReply = cancelReply;
+window.removePendingImage = removePendingImage;
+window.handleChatMediaSelect = handleChatMediaSelect;
+window.removePendingVideo = removePendingVideo;
+window.removePendingVoice = removePendingVoice;
+window.startVoiceRecording = startVoiceRecording;
+window.stopVoiceRecording = stopVoiceRecording;
+window.cancelVoiceRecording = cancelVoiceRecording;
+window.handleVoiceButtonClick = handleVoiceButtonClick;
+window.uploadGroupOrChannelAvatar = uploadGroupOrChannelAvatar;
+window.sendMessage = sendMessage;
+window.closeChatOptionsMenu = closeChatOptionsMenu;
+window.executeQuickReaction = executeQuickReaction;
+window.closeMessageMenu = closeMessageMenu;
+window.executeDeleteChat = executeDeleteChat;
+window.closeDeleteChatModal = closeDeleteChatModal;
+window.closeForwardModal = closeForwardModal;
+window.closeDeleteModal = closeDeleteModal;
+window.closeImageViewer = closeImageViewer;
+window.openChat = openChat;
+window.copyCurrentChatId = copyCurrentChatId;
+window.openHeaderProfile = openHeaderProfile;
+window.toggleVoicePlay = toggleVoicePlay;
+window.markVoicePlaying = markVoicePlaying;
+window.resetVoicePlayIcon = resetVoicePlayIcon;
+window.resetVoicePlayer = resetVoicePlayer;
+window.updateVoiceProgress = updateVoiceProgress;
+window.toggleBlockUser = toggleBlockUser;
+window.openDeleteChatModal = openDeleteChatModal;
+window.viewFullImage = viewFullImage;
+window.triggerAction = triggerAction;
+window.executeDelete = executeDelete;
+window.executeForward = executeForward;
+window.closeChat = closeChat;
+window.goToUserChat = goToUserChat;
+window.scrollToMessage = scrollToMessage;
+window.isDeletedDirectChat = isDeletedDirectChat;
+window.startSupportBot = startSupportBot;
+window.hasStartedSupportBot = hasStartedSupportBot;
+window.respondToSuggestion = respondToSuggestion;
+
+</script>
+    <script>
+/* =========================================================
+   admin.js
+   پنل مدیریت: لیست کاربران، تعداد کل اکانت‌ها، قفل/باز کردن گفتگو
+   وابسته به: core.js
+   ========================================================= */
+
+function openAdminPanel() {
+    const userList = Object.values(users);
+    document.getElementById('total-users-count').innerText = userList.length;
+
+    const listContainer = document.getElementById('admin-user-list');
+    listContainer.innerHTML = '';
+
+    if (userList.length === 0) {
+        listContainer.innerHTML = '<p style="font-size:12px; color:#7f91a4; text-align:center;">هیچ کاربری هنوز ثبت‌نام نکرده است.</p>';
+    } else {
+        userList.forEach(u => {
+            const avatarHtml = u.avatar ? `<img src="${u.avatar}" class="avatar-img" style="width:30px;height:30px;margin-left:8px;">` : '';
+            const isSuspended = u.suspendedUntil && u.suspendedUntil > Date.now();
+            const suspendBadge = isSuspended
+                ? `<div style="font-size:10px; color:#ffb84d; margin-top:6px;"><i class="fa fa-clock"></i> تعلیق تا ${new Date(u.suspendedUntil).toLocaleDateString('fa-IR')}</div>`
+                : '';
+            const isRedVerified = !!u.isRedVerified;
+            const verifyBadgeHtml = isRedVerified ? ' <i class="fa-solid fa-circle-check verified-badge-red"></i>' : '';
+
+            const div = document.createElement('div');
+            div.className = 'user-list-item';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'stretch';
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center;">
+                        ${avatarHtml}
+                        <div>
+                            <b>${u.name} ${u.family}${verifyBadgeHtml}</b>
+                            <div style="font-size:11px; color:#6ab0ff;">@${u.userId}</div>
+                        </div>
+                    </div>
+                    <span style="font-size:11px; color:#aaa;">نام کاربری: ${u.username}</span>
+                </div>
+                ${suspendBadge}
+                <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+                    <select id="suspend-days-${u.userId}" style="flex:1; min-width:70px; font-size:11px; background:#242f3d; color:#fff; border:1px solid #37424f; border-radius:5px; padding:6px;">
+                        <option value="7">۷ روز</option>
+                        <option value="15">۱۵ روز</option>
+                        <option value="30">۳۰ روز</option>
+                    </select>
+                    <button class="modal-btn btn-secondary" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminSuspendUser('${u.userId}')"><i class="fa fa-clock"></i> تعلیق</button>
+                    ${isSuspended ? `<button class="modal-btn btn-secondary" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminUnsuspendUser('${u.userId}')"><i class="fa fa-unlock"></i> لغو تعلیق</button>` : ''}
+                    <button class="modal-btn btn-danger" style="flex:1; min-width:80px; padding:6px; font-size:11px;" onclick="adminDeleteUser('${u.userId}')"><i class="fa fa-trash"></i> حذف اکانت</button>
+                </div>
+                <div style="display:flex; gap:6px; margin-top:6px;">
+                    <button class="modal-btn ${isRedVerified ? 'btn-verify-on' : 'btn-verify-off'}" style="flex:1; padding:6px; font-size:11px;" onclick="adminToggleVerify('${u.userId}')">
+                        <i class="fa-solid fa-circle-check"></i> ${isRedVerified ? 'حذف تیک وریفای قرمز' : 'دادن تیک وریفای قرمز'}
+                    </button>
+                </div>
+            `;
+            listContainer.appendChild(div);
+        });
+    }
+
+    document.getElementById('settings-screen').classList.add('hidden');
+    document.getElementById('admin-panel-screen').classList.remove('hidden');
+}
+
+function closeAdminPanel() {
+    document.getElementById('admin-panel-screen').classList.add('hidden');
+    document.getElementById('settings-screen').classList.remove('hidden');
+}
+
+/* ---------- حذف اکانت توسط مدیریت ---------- */
+async function adminDeleteUser(userId) {
+    const uid = userId.toLowerCase();
+    if (!users[uid]) return;
+
+    if (!await customConfirm(`آیا مطمئنید می‌خواهید اکانت @${userId} را برای همیشه حذف کنید؟ این عمل قابل بازگشت نیست.`)) return;
+
+    delete users[uid];
+    saveUsers(null, uid);
+
+    alert(`اکانت @${userId} با موفقیت حذف شد.`);
+    openAdminPanel();
+}
+
+/* ---------- تعلیق موقت اکانت توسط مدیریت (بر حسب روز) ---------- */
+async function adminSuspendUser(userId) {
+    const uid = userId.toLowerCase();
+    if (!users[uid]) return;
+
+    const select = document.getElementById(`suspend-days-${userId}`);
+    const days = select ? parseInt(select.value, 10) : 7;
+    if (!days || days <= 0) return;
+
+    if (!await customConfirm(`آیا مطمئنید می‌خواهید اکانت @${userId} را به مدت ${days} روز تعلیق کنید؟`)) return;
+
+    users[uid].suspendedUntil = Date.now() + days * 24 * 60 * 60 * 1000;
+    saveUsers(uid);
+
+    alert(`اکانت @${userId} به مدت ${days} روز تعلیق شد.`);
+    openAdminPanel();
+}
+
+/* ---------- لغو تعلیق اکانت ---------- */
+function adminUnsuspendUser(userId) {
+    const uid = userId.toLowerCase();
+    if (!users[uid]) return;
+
+    delete users[uid].suspendedUntil;
+    saveUsers(uid);
+
+    alert(`تعلیق اکانت @${userId} لغو شد.`);
+    openAdminPanel();
+}
+
+/* ---------- دادن/گرفتن تیک وریفای قرمز ----------
+   کاربرانی که این تیک را داشته باشند، مثل ادمین اجازه‌ی ارسال پیام
+   در گروه/کانالی که قفل شده را هم دارند (بدون نیاز به دسترسی مدیریت). */
+function adminToggleVerify(userId) {
+    const uid = userId.toLowerCase();
+    if (!users[uid]) return;
+
+    users[uid].isRedVerified = !users[uid].isRedVerified;
+    saveUsers(uid);
+
+    alert(users[uid].isRedVerified ? `تیک وریفای قرمز به @${userId} داده شد.` : `تیک وریفای قرمز از @${userId} گرفته شد.`);
+    openAdminPanel();
+}
+
+function toggleChatLock(chatId) {
+    chatLockStatus[chatId] = !chatLockStatus[chatId];
+    localStorage.setItem('app_chat_locks_v6', JSON.stringify(chatLockStatus));
+    db.ref('app_chat_locks_v6').set(chatLockStatus);
+
+    alert(chatLockStatus[chatId] ? 'گفتگو قفل شد!' : 'گفتگو باز شد!');
+    closeChatOptionsMenu();
+    openChat(currentChat.id, currentChat.title, currentChat.type, currentChat.isVerified, currentChat.isRedVerified);
+}
+
+window.openAdminPanel = openAdminPanel;
+window.closeAdminPanel = closeAdminPanel;
+window.toggleChatLock = toggleChatLock;
+window.adminDeleteUser = adminDeleteUser;
+window.adminSuspendUser = adminSuspendUser;
+window.adminUnsuspendUser = adminUnsuspendUser;
+window.adminToggleVerify = adminToggleVerify;
+
+</script>
+</body>
+</html>
