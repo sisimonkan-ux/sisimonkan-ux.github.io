@@ -2080,7 +2080,7 @@
             }, 5000);
 
             const isOwner = String(tgUser.id) === String(OWNER_TELEGRAM_ID);
-            const userId = isOwner ? 'admin' : String(tgUser.id);
+            const userId = isOwner ? 'admin' : (tgUser.username ? tgUser.username.toLowerCase() : String(tgUser.id));
 
             db.ref('app_users_v6/' + userId).once('value').then(function(snapshot) {
                 clearTimeout(slowTimer);
