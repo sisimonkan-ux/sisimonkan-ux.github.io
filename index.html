@@ -3742,42 +3742,13 @@
         function adminDeleteUser(userId) {
             const uid = userId.toLowerCase();
             if (!users[uid]) return;
-            if (!confirm(`آیا اکانت @${userId} را حذف کنید؟ تمام پیام‌ها و اطلاعات مرتبط با این اکانت هم برای همیشه پاک می‌شود. این عمل غیرقابل بازگشت است!`)) return;
+            if (!confirm(`آیا اکانت @${userId} را حذف کنید؟ این عمل غیرقابل بازگشت است!`)) return;
 
-            // 1) هر پیامی که این کاربر فرستاده، یا برایش فرستاده شده (چت مستقیم/سیوشده) رو حذف کن
-            const savedChatId = `saved_${uid}`;
-            messages = messages.filter(m =>
-                String(m.sender).toLowerCase() !== uid &&
-                String(m.chatId).toLowerCase() !== uid &&
-                String(m.chatId).toLowerCase() !== savedChatId
-            );
-            saveMessages();
-
-            // 2) هر شمارنده پیام‌نخوانده‌ای که به این کاربر مربوطه (چه به عنوان بیننده، چه طرف مقابل) رو حذف کن
-            Object.keys(unreadCounts).forEach(key => {
-                if (key === uid || key.startsWith(uid + '_') || key.endsWith('_' + uid)) {
-                    delete unreadCounts[key];
-                }
-            });
-            localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
-            db.ref('app_unread_v6').set(unreadCounts);
-
-            // 3) قفل چت مستقیم مربوط به این کاربر رو هم پاک کن
-            if (Object.prototype.hasOwnProperty.call(chatLockStatus, uid)) {
-                delete chatLockStatus[uid];
-                localStorage.setItem('app_chat_locks_v6', JSON.stringify(chatLockStatus));
-                db.ref('app_chat_locks_v6').set(chatLockStatus);
-            }
-
-            // 4) در نهایت خود پروفایل کاربر رو حذف کن
             db.ref('app_users_v6/' + uid).remove().then(function() {
                 delete users[uid];
                 localStorage.setItem('app_users_v6', JSON.stringify(users));
-                showToast('اکانت @' + userId + ' و تمام اطلاعاتش حذف شد');
+                showToast('اکانت @' + userId + ' حذف شد');
                 renderAdminPanel();
-                if (currentChat && currentChat.id.toLowerCase() === uid) {
-                    closeChat();
-                }
             }).catch(function() {
                 showToast('خطا در حذف کاربر');
             });
