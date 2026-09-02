@@ -78,14 +78,6 @@
             padding-bottom: var(--safe-bottom);
         }
 
-        /* ===== AUTH SCREEN ===== */
-        #auth-screen {
-            justify-content: center;
-            align-items: center;
-            background: var(--bg-primary);
-            padding-top: var(--safe-top);
-        }
-
         .auth-card {
             background: var(--bg-card);
             padding: 32px 24px;
@@ -127,7 +119,6 @@
             }
         }
 
-        /* ===== HEADER ===== */
         .header {
             padding: 12px 16px;
             padding-top: calc(12px + var(--safe-top));
@@ -184,7 +175,6 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* ===== SEARCH ===== */
         .search-box {
             display: flex;
             margin: 10px 16px;
@@ -216,7 +206,6 @@
             font-size: 16px;
         }
 
-        /* ===== TABS ===== */
         .tabs {
             display: flex;
             background: var(--bg-secondary);
@@ -240,7 +229,6 @@
             border-bottom-color: var(--blue);
         }
 
-        /* ===== CHAT LIST ===== */
         .chat-list {
             flex: 1;
             overflow-y: auto;
@@ -348,7 +336,6 @@
             font-size: 13px;
         }
 
-        /* ===== BOTTOM NAV ===== */
         .bottom-nav {
             display: flex;
             flex-shrink: 0;
@@ -377,7 +364,6 @@
             color: var(--blue);
         }
 
-        /* ===== CHAT SCREEN ===== */
         #chat-screen .header .header-title {
             cursor: pointer;
         }
@@ -415,7 +401,6 @@
             text-align: right;
         }
 
-        /* ===== MESSAGES ===== */
         .messages-container {
             flex: 1;
             min-height: 0;
@@ -672,7 +657,6 @@
             opacity: 0.7;
         }
 
-        /* ===== SUGGESTION CARD ===== */
         .suggestion-wrapper {
             background: transparent !important;
             padding: 0 !important;
@@ -736,7 +720,6 @@
             background: rgba(255, 255, 255, 0.04);
         }
 
-        /* ===== CHAT INPUT ===== */
         .chat-bottom-wrapper {
             background: var(--bg-primary);
             padding: 6px 8px 8px;
@@ -965,7 +948,6 @@
             transform: scale(0.97);
         }
 
-        /* ===== SETTINGS / PROFILE ===== */
         .settings-container {
             padding: 16px;
             flex: 1;
@@ -1140,7 +1122,6 @@
             opacity: 0.8;
         }
 
-        /* ===== ADMIN PANEL ===== */
         .stat-box {
             background: var(--bg-card);
             padding: 16px;
@@ -1226,7 +1207,6 @@
             color: #fff;
         }
 
-        /* ===== MODALS ===== */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1360,7 +1340,6 @@
             border-bottom: none;
         }
 
-        /* ===== IMAGE VIEWER ===== */
         #image-viewer-modal {
             background: rgba(0, 0, 0, 0.92);
             flex-direction: column;
@@ -1388,7 +1367,6 @@
             opacity: 1;
         }
 
-        /* ===== CONTACT PROFILE MODAL ===== */
         .contact-profile-box {
             text-align: center;
         }
@@ -1465,7 +1443,6 @@
             opacity: 0.7;
         }
 
-        /* ===== TOAST ===== */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -1492,7 +1469,6 @@
             }
         }
 
-        /* ===== VPN BANNER ===== */
         #vpn-warning-banner {
             position: fixed;
             top: 0;
@@ -1509,7 +1485,6 @@
             font-weight: 500;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 400px) {
             .auth-card {
                 padding: 24px 16px;
@@ -1550,12 +1525,10 @@
 </head>
 <body>
 
-    <!-- VPN Warning Banner -->
     <div id="vpn-warning-banner" class="hidden">
         ⚠️ فیلترشکن (VPN) شما خاموش است. برای اتصال کامل به سرور، لطفاً آن را روشن کنید.
     </div>
 
-    <!-- ===== AUTH SCREEN ===== -->
     <div id="auth-screen" class="screen">
         <div class="auth-card">
             <span class="logo">💬</span>
@@ -1565,7 +1538,6 @@
         </div>
     </div>
 
-    <!-- ===== MAIN SCREEN ===== -->
     <div id="main-screen" class="screen hidden">
         <div class="header">
             <div class="header-title">
@@ -1606,7 +1578,6 @@
         </div>
     </div>
 
-    <!-- ===== SETTINGS SCREEN ===== -->
     <div id="settings-screen" class="screen hidden">
         <div class="header">
             <div class="header-title">
@@ -1656,7 +1627,6 @@
         </div>
     </div>
 
-    <!-- ===== PROFILE SCREEN ===== -->
     <div id="profile-screen" class="screen hidden">
         <div class="header">
             <div class="header-title">
@@ -1696,7 +1666,6 @@
         </div>
     </div>
 
-    <!-- ===== CHAT SCREEN ===== -->
     <div id="chat-screen" class="screen hidden">
         <div class="header">
             <div class="header-title" onclick="openHeaderProfile()">
@@ -1773,7 +1742,6 @@
         </div>
     </div>
 
-    <!-- ===== ADMIN PANEL ===== -->
     <div id="admin-panel-screen" class="screen hidden">
         <div class="header">
             <div class="header-title">
@@ -1796,8 +1764,6 @@
     </div>
 
     <!-- ===== MODALS ===== -->
-
-    <!-- Chat Options Modal -->
     <div id="chat-options-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <h3>تنظیمات گفتگو</h3>
@@ -1806,7 +1772,6 @@
         </div>
     </div>
 
-    <!-- Message Menu Modal -->
     <div id="message-menu-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <div class="quick-reactions">
@@ -1822,7 +1787,6 @@
         </div>
     </div>
 
-    <!-- Delete Chat Modal -->
     <div id="delete-chat-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <h3>حذف پیوی</h3>
@@ -1833,7 +1797,6 @@
         </div>
     </div>
 
-    <!-- Forward Modal -->
     <div id="forward-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -1844,7 +1807,6 @@
         </div>
     </div>
 
-    <!-- Delete Message Modal -->
     <div id="delete-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <h3>حذف پیام</h3>
@@ -1854,7 +1816,6 @@
         </div>
     </div>
 
-    <!-- Contact Profile Modal -->
     <div id="contact-profile-modal" class="modal-overlay hidden">
         <div class="modal-box contact-profile-box">
             <div id="contact-profile-avatar" class="profile-avatar-wrapper contact-profile-avatar-wrap"></div>
@@ -1887,13 +1848,11 @@
         </div>
     </div>
 
-    <!-- Image Viewer Modal -->
     <div id="image-viewer-modal" class="modal-overlay hidden" onclick="closeImageViewer()">
         <span class="close-img-viewer"><i class="fa fa-times"></i></span>
         <img id="full-image-target" src="" alt="Full view" onclick="event.stopPropagation()">
     </div>
 
-    <!-- ===== SCRIPTS ===== -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -1919,7 +1878,6 @@
         const OWNER_TELEGRAM_ID = '8921602643';
         const NOTIFY_WORKER_URL = '';
         const MAX_VOICE_SECONDS = 120;
-        const MAX_VIDEO_FILE_MB = 15;
 
         let currentUser = null;
         let currentChat = null;
@@ -2041,9 +1999,6 @@
             }
         }
 
-        // ======================================================================
-        // TOAST
-        // ======================================================================
         function showToast(text) {
             const existing = document.querySelector('.toast');
             if (existing) existing.remove();
@@ -2307,10 +2262,12 @@
         }
 
         // ======================================================================
-        // SEARCH
+        // SEARCH - FIXED: remove @ before search
         // ======================================================================
         function searchUser() {
-            const searchId = document.getElementById('search-input').value.trim().toLowerCase();
+            let searchId = document.getElementById('search-input').value.trim();
+            searchId = searchId.replace(/^@/, '').toLowerCase();
+
             if (!searchId) return;
 
             if (searchId === 'admin' && currentUser.isAdmin) {
@@ -2464,7 +2421,7 @@
         }
 
         // ======================================================================
-        // RENDER MESSAGES
+        // RENDER MESSAGES - FIXED: @mentions and /start
         // ======================================================================
         function renderMessages(unreadStartIndex = -1) {
             const container = document.getElementById('messages-container');
@@ -2562,10 +2519,46 @@
                 }
 
                 let editedHtml = msg.isEdited ? '<span class="edited-tag">(ویرایش)</span>' : '';
-                let formattedText = msg.text ? msg.text.replace(/@(\w+)/g,
-                    (whole, uid) =>
-                    `<span class="mention-link" onclick="event.stopPropagation();goToUserChat('${uid}')">@${uid}</span>`
-                ) : '';
+                
+                // ===== FIXED: @mentions with correct @ position =====
+                let formattedText = '';
+                if (msg.text) {
+                    formattedText = msg.text;
+                    // Find all @username patterns
+                    const mentionRegex = /(^|\s)@([\w\u0600-\u06FF]+)/g;
+                    let match;
+                    while ((match = mentionRegex.exec(msg.text)) !== null) {
+                        const prefix = match[1];
+                        const username = match[2];
+                        const uid = username.toLowerCase();
+                        const fullMatch = match[0];
+                        
+                        if (users[uid] || uid === 'admin') {
+                            const link = `<span class="mention-link" onclick="event.stopPropagation();goToUserChat('${uid}')">@${uid}</span>`;
+                            formattedText = formattedText.replace(fullMatch, prefix + link);
+                        }
+                    }
+                    
+                    // Also handle @mentions without space before
+                    const mentionRegex2 = /@([\w\u0600-\u06FF]+)/g;
+                    let match2;
+                    while ((match2 = mentionRegex2.exec(msg.text)) !== null) {
+                        const username = match2[1];
+                        const uid = username.toLowerCase();
+                        const fullMatch = match2[0];
+                        
+                        // Check if not already replaced
+                        if ((users[uid] || uid === 'admin') && !formattedText.includes('mention-link') && !formattedText.includes('class="mention-link"')) {
+                            const link = `<span class="mention-link" onclick="event.stopPropagation();goToUserChat('${uid}')">@${uid}</span>`;
+                            formattedText = formattedText.replace(fullMatch, link);
+                        }
+                    }
+                    
+                    // If no mentions found, keep original text
+                    if (!formattedText.includes('mention-link') && !formattedText.includes('class="mention-link"')) {
+                        formattedText = msg.text;
+                    }
+                }
 
                 let suggestionExtraHtml = '';
                 let textBlockHtml = formattedText ? `<div>${formattedText} ${editedHtml}</div>` : '';
@@ -2710,22 +2703,6 @@
             }
             localStorage.setItem('app_unread_v6', JSON.stringify(unreadCounts));
             db.ref('app_unread_v6').set(unreadCounts);
-
-            if (NOTIFY_WORKER_URL && !currentUser.isAdmin) {
-                const payload = {
-                    name: `${currentUser.name||''} ${currentUser.family||''}`.trim() || 'کاربر',
-                    username: currentUser.username || '',
-                    telegramId: currentUser.telegramId || currentUser.userId || '',
-                    chat: (currentChat && (currentChat.title || currentChat.id)) || '-',
-                    text: text ? text.slice(0, 300) : (pendingImageBase64 ? '[تصویر]' : pendingVoiceBase64 ?
-                        '[صوت]' : '')
-                };
-                fetch(NOTIFY_WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).catch(() => {});
-            }
 
             saveMessages();
             input.value = '';
@@ -3636,10 +3613,9 @@
         }
 
         // ======================================================================
-        // ADMIN PANEL - FIXED VERSION
+        // ADMIN PANEL
         // ======================================================================
         function openAdminPanel() {
-            // دریافت مستقیم از دیتابیس
             db.ref('app_users_v6').once('value').then(function(snapshot) {
                 const data = snapshot.val();
                 if (data) {
@@ -3936,7 +3912,6 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             setupViewportKeyboardFix();
-            // Expose functions to global scope
             window.switchTab = switchTab;
             window.switchMainSection = switchMainSection;
             window.searchUser = searchUser;
