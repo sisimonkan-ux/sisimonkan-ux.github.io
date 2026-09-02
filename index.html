@@ -311,19 +311,6 @@
             text-overflow: ellipsis;
             margin-top: 2px;
         }
-        /* ✅ نمایش آیدی در لیست چت‌ها */
-        .chat-info .chat-id-display {
-            font-size: 11px;
-            color: var(--blue);
-            direction: ltr;
-            text-align: right;
-            margin-top: 1px;
-            background: rgba(0, 122, 255, 0.06);
-            padding: 0 6px;
-            border-radius: 4px;
-            display: inline-block;
-            font-weight: 500;
-        }
 
         .chat-meta {
             display: flex;
@@ -422,20 +409,10 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        /* ✅ استایل آیدی در هدر چت */
         #current-chat-subtitle.user-id-text {
             direction: ltr;
             unicode-bidi: plaintext;
             text-align: right;
-            color: var(--blue);
-            font-weight: 500;
-            font-size: 13px;
-            background: rgba(0, 122, 255, 0.08);
-            padding: 2px 12px;
-            border-radius: 6px;
-            margin-top: 2px;
-            display: inline-block;
-            width: fit-content;
         }
 
         /* ===== MESSAGES ===== */
@@ -544,6 +521,10 @@
         .message.my-msg .replied-box {
             background: rgba(0, 0, 0, 0.2);
             border-right-color: rgba(255, 255, 255, 0.5);
+        }
+        .message.my-msg .mention-link {
+            color: #fff;
+            text-decoration: underline;
         }
 
         .sender-name {
@@ -2314,10 +2295,6 @@
                 if (hasReactionAlert) metaHtml += `<span class="reaction-alert">❤️</span>`;
                 if (hasReplyAlert) metaHtml += `<span class="reply-alert"><i class="fa fa-reply"></i></span>`;
 
-                // ✅ نمایش آیدی در لیست چت‌ها (فقط برای پیوی)
-                const chatIdDisplay = chat.type === 'direct' ? 
-                    `<div class="chat-id-display">🆔 @${chat.id}</div>` : '';
-
                 const div = document.createElement('div');
                 div.className = 'chat-item';
                 div.onclick = () => openChat(chat.id, chat.title, chat.type, chat.isVerified, chat.isRedVerified);
@@ -2325,7 +2302,6 @@
                     <div class="chat-avatar">${avatarHtml}</div>
                     <div class="chat-info">
                         <div class="name">${chat.title} ${verifiedHtml}</div>
-                        ${chatIdDisplay}
                         <div class="last-msg">${lastMsgText}</div>
                     </div>
                     <div class="chat-meta">${metaHtml}</div>
@@ -2396,15 +2372,12 @@
 
             const subtitle = document.getElementById('current-chat-subtitle');
             subtitle.classList.remove('user-id-text');
-            
-            // ✅ نمایش آیدی به صورت برجسته و واضح در هدر چت
             if (type === 'direct') {
-                subtitle.textContent = '🆔 @' + chatId;
+                subtitle.textContent = '@' + chatId;
                 subtitle.classList.add('user-id-text');
-                // استایل‌ها قبلاً در CSS تعریف شده
-            } else if (type === 'group') subtitle.textContent = '👥 گروه';
-            else if (type === 'channel') subtitle.textContent = '📢 کانال';
-            else if (type === 'saved') subtitle.textContent = '📁 پیام‌های ذخیره‌شده';
+            } else if (type === 'group') subtitle.textContent = 'گروه';
+            else if (type === 'channel') subtitle.textContent = 'کانال';
+            else if (type === 'saved') subtitle.textContent = 'پیام‌های ذخیره‌شده';
             else subtitle.textContent = '';
 
             const avatarContainer = document.getElementById('chat-header-avatar');
@@ -3670,6 +3643,7 @@
         // ADMIN PANEL - FIXED VERSION
         // ======================================================================
         function openAdminPanel() {
+            // دریافت مستقیم از دیتابیس
             db.ref('app_users_v6').once('value').then(function(snapshot) {
                 const data = snapshot.val();
                 if (data) {
@@ -3966,6 +3940,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             setupViewportKeyboardFix();
+            // Expose functions to global scope
             window.switchTab = switchTab;
             window.switchMainSection = switchMainSection;
             window.searchUser = searchUser;
