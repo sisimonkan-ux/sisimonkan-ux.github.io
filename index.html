@@ -1221,6 +1221,10 @@
             background: var(--green);
             color: #fff;
         }
+        .user-list-item .user-actions .btn-sync {
+            background: var(--orange);
+            color: #fff;
+        }
 
         /* ===== MODALS ===== */
         .modal-overlay {
@@ -3632,10 +3636,24 @@
         }
 
         // ======================================================================
-        // ADMIN PANEL
+        // ADMIN PANEL - FIXED VERSION
         // ======================================================================
         function openAdminPanel() {
-            const userList = Object.values(users);
+            // دریافت مستقیم از دیتابیس
+            db.ref('app_users_v6').once('value').then(function(snapshot) {
+                const data = snapshot.val();
+                if (data) {
+                    users = data;
+                    localStorage.setItem('app_users_v6', JSON.stringify(users));
+                }
+                renderAdminPanel();
+            }).catch(function() {
+                renderAdminPanel();
+            });
+        }
+
+        function renderAdminPanel() {
+            const userList = Object.values(users).filter(u => u && u.userId);
             document.getElementById('total-users-count').textContent = userList.length;
 
             const container = document.getElementById('admin-user-list');
@@ -3647,9 +3665,14 @@
                 return;
             }
 
+            userList.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
             userList.forEach(u => {
-                const avatarHtml = u.avatar ? `<img src="${u.avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` :
-                    '';
+                const uid = u.userId.toLowerCase();
+                const avatarHtml = u.avatar ?
+                    `<img src="${u.avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` :
+                    `<div style="width:32px;height:32px;border-radius:50%;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">${(u.name||'؟').charAt(0)}</div>`;
+
                 const isSuspended = u.suspendedUntil && u.suspendedUntil > Date.now();
                 const suspendBadge = isSuspended ?
                     `<div style="font-size:10px;color:var(--orange);margin-top:4px;"><i class="fa fa-clock"></i> تعلیق تا ${new Date(u.suspendedUntil).toLocaleDateString('fa-IR')}</div>` :
@@ -3663,8 +3686,8 @@
                     <div class="user-row">
                         ${avatarHtml}
                         <div class="user-info">
-                            <div class="name">${u.name} ${u.family}${verifyBadge}</div>
-                            <div class="uid">@${u.userId}</div>
+                            <div class="name">${(u.name||'')} ${(u.family||'')}${verifyBadge}</div>
+                            <div class="uid">@${u.userId} ${u.telegramId ? '📱' : ''}</div>
                         </div>
                     </div>
                     ${suspendBadge}
@@ -3680,6 +3703,7 @@
                             ${isRedVerified ? 'حذف تیک' : 'تیک قرمز'}
                         </button>
                         <button class="btn-delete" onclick="adminDeleteUser('${u.userId}')">حذف</button>
+                        <button class="btn-sync" onclick="adminForceSync('${u.userId}')"><i class="fa fa-sync"></i></button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -3694,45 +3718,80 @@
             document.getElementById('settings-screen').classList.remove('hidden');
         }
 
-        async function adminDeleteUser(userId) {
+        function adminForceSync(userId) {
             const uid = userId.toLowerCase();
-            if (!users[uid]) return;
-            if (!confirm(`آیا اکانت @${userId} را حذف کنید؟`)) return;
-            delete users[uid];
-            saveUsers(null, uid);
-            showToast('اکانت حذف شد');
-            openAdminPanel();
+            db.ref('app_users_v6/' + uid).once('value').then(function(snapshot) {
+                const data = snapshot.val();
+                if (data) {
+                    users[uid] = data;
+                    localStorage.setItem('app_users_v6', JSON.stringify(users));
+                    showToast('کاربر @' + userId + ' همگام‌سازی شد');
+                    renderAdminPanel();
+                } else {
+                    showToast('کاربر در دیتابیس یافت نشد!');
+                }
+            }).catch(function() {
+                showToast('خطا در همگام‌سازی');
+            });
         }
 
-        async function adminSuspendUser(userId) {
+        function adminDeleteUser(userId) {
+            const uid = userId.toLowerCase();
+            if (!users[uid]) return;
+            if (!confirm(`آیا اکانت @${userId} را حذف کنید؟ این عمل غیرقابل بازگشت است!`)) return;
+
+            db.ref('app_users_v6/' + uid).remove().then(function() {
+                delete users[uid];
+                localStorage.setItem('app_users_v6', JSON.stringify(users));
+                showToast('اکانت @' + userId + ' حذف شد');
+                renderAdminPanel();
+            }).catch(function() {
+                showToast('خطا در حذف کاربر');
+            });
+        }
+
+        function adminSuspendUser(userId) {
             const uid = userId.toLowerCase();
             if (!users[uid]) return;
             const select = document.getElementById(`suspend-days-${userId}`);
             const days = select ? parseInt(select.value, 10) : 7;
             if (!days || days <= 0) return;
             if (!confirm(`اکانت @${userId} را ${days} روز تعلیق کنید؟`)) return;
+
             users[uid].suspendedUntil = Date.now() + days * 24 * 60 * 60 * 1000;
-            saveUsers(uid);
-            showToast(`تعلیق ${days} روزه شد`);
-            openAdminPanel();
+            db.ref('app_users_v6/' + uid).update({ suspendedUntil: users[uid].suspendedUntil }).then(function() {
+                saveUsers(uid);
+                showToast(`تعلیق ${days} روزه شد`);
+                renderAdminPanel();
+            }).catch(function() {
+                showToast('خطا در تعلیق کاربر');
+            });
         }
 
         function adminUnsuspendUser(userId) {
             const uid = userId.toLowerCase();
             if (!users[uid]) return;
             delete users[uid].suspendedUntil;
-            saveUsers(uid);
-            showToast('تعلیق لغو شد');
-            openAdminPanel();
+            db.ref('app_users_v6/' + uid).update({ suspendedUntil: null }).then(function() {
+                saveUsers(uid);
+                showToast('تعلیق لغو شد');
+                renderAdminPanel();
+            }).catch(function() {
+                showToast('خطا در لغو تعلیق');
+            });
         }
 
         function adminToggleVerify(userId) {
             const uid = userId.toLowerCase();
             if (!users[uid]) return;
             users[uid].isRedVerified = !users[uid].isRedVerified;
-            saveUsers(uid);
-            showToast(users[uid].isRedVerified ? 'تیک قرمز داده شد' : 'تیک قرمز گرفته شد');
-            openAdminPanel();
+            db.ref('app_users_v6/' + uid).update({ isRedVerified: users[uid].isRedVerified }).then(function() {
+                saveUsers(uid);
+                showToast(users[uid].isRedVerified ? 'تیک قرمز داده شد' : 'تیک قرمز گرفته شد');
+                renderAdminPanel();
+            }).catch(function() {
+                showToast('خطا در تغییر وضعیت تیک');
+            });
         }
 
         // ======================================================================
@@ -3895,6 +3954,7 @@
             window.adminSuspendUser = adminSuspendUser;
             window.adminUnsuspendUser = adminUnsuspendUser;
             window.adminToggleVerify = adminToggleVerify;
+            window.adminForceSync = adminForceSync;
             window.toggleChatLock = toggleChatLock;
             window.toggleBlockUser = toggleBlockUser;
             window.openChatOptionsMenu = openChatOptionsMenu;
