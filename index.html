@@ -87,7 +87,6 @@
             position: relative;
         }
 
-        /* پس‌زمینه با افکت گرادیان و دایره‌های محو */
         .auth-bg {
             position: absolute;
             top: 0;
@@ -4308,6 +4307,11 @@
             db.ref('app_users_v6/' + uid).update({ suspendedUntil: users[uid].suspendedUntil }).then(function() {
                 saveUsers(uid);
                 showToast(`تعلیق ${days} روزه شد`);
+                // اگر کاربر فعلی همان کاربر تعلیق‌شده است، او را خارج کن
+                if (currentUser && currentUser.userId.toLowerCase() === uid.toLowerCase()) {
+                    logout();
+                    alert('حساب شما تعلیق شد.');
+                }
                 renderAdminPanel();
             }).catch(function() {
                 showToast('خطا در تعلیق کاربر');
