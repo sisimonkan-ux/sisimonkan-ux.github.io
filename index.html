@@ -2287,6 +2287,13 @@
                 };
             }
             return {
+                once(event) {
+                    return supabaseClient.from(table).select('id, data').then(({ data }) => {
+                        const obj = {};
+                        (data || []).forEach(row => { obj[row.id] = row.data; });
+                        return { val: () => (Object.keys(obj).length ? obj : null) };
+                    });
+                },
                 on(event, cb) {
                     const load = () => {
                         supabaseClient.from(table).select('id, data').then(({ data }) => {
