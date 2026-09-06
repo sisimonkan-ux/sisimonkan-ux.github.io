@@ -258,11 +258,65 @@ input{font-family:inherit;}
 .admin-user-row .info{ font-size:12.5px; }
 .admin-user-row .info b{ font-size:13.5px; }
 .admin-user-row .tag-sus{ color:var(--amber); font-size:11px; }
+.admin-user-row .tag-admin{ color:var(--violet); font-size:11px; }
 .admin-actions{ display:flex; gap:6px; }
 .admin-actions button{ width:30px; height:30px; border-radius:8px; background:var(--bg-2); font-size:12px; }
 .admin-actions button.warn{ color:var(--amber); }
 .admin-actions button.danger{ color:var(--red); }
 .admin-actions button.ok{ color:var(--green); }
+.admin-actions button:disabled{ opacity:.3; }
+
+/* ===== ADMIN v2: stats / tabs / tickets ===== */
+.admin-stats-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:14px 16px 4px; }
+.admin-stat-card{
+  background:linear-gradient(160deg, var(--bg-1), var(--bg-2)); border:1px solid var(--line);
+  border-radius:var(--radius-m); padding:10px 6px; text-align:center;
+}
+.admin-stat-card .num{ font-size:17px; font-weight:800; color:var(--violet); }
+.admin-stat-card.warn .num{ color:var(--amber); }
+.admin-stat-card.red .num{ color:var(--red); }
+.admin-stat-card .lbl{ font-size:9.5px; color:var(--text-1); margin-top:2px; }
+.admin-tabs{ display:flex; gap:8px; padding:14px 16px 8px; }
+.admin-tab-btn{
+  flex:1; position:relative; display:flex; align-items:center; justify-content:center; gap:6px;
+  background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:10px 6px;
+  font-size:12.5px; font-weight:600; color:var(--text-1); transition:.2s;
+}
+.admin-tab-btn.active{ background:linear-gradient(135deg, var(--violet), #6647d6); color:#fff; border-color:transparent; }
+.admin-search{ padding:0 16px 10px; }
+.admin-search input{
+  width:100%; background:var(--bg-2); border:1px solid var(--line); border-radius:var(--radius-s);
+  padding:11px 14px; color:var(--text-0); font-size:13px; outline:none;
+}
+.tab-dot, .nav-dot{
+  position:absolute; top:-4px; left:-4px; width:9px; height:9px; border-radius:50%;
+  background:var(--red); border:2px solid var(--bg-1); display:none;
+}
+.nav-dot{ top:-3px; left:calc(50% - 14px); border-color:var(--bg-1); }
+.icon-wrap{ position:relative; display:inline-flex; }
+.ticket-row{
+  display:flex; align-items:center; gap:12px; margin:0 16px 8px; background:var(--bg-1);
+  border:1px solid var(--line); border-radius:var(--radius-m); padding:12px 14px; transition:.15s;
+}
+.ticket-row:active{ background:var(--bg-2); }
+.ticket-row .avatar-circ{ flex-shrink:0; }
+.ticket-row .info{ flex:1; text-align:right; overflow:hidden; }
+.ticket-row .info b{ font-size:13.5px; }
+.ticket-row .info p{ font-size:11.5px; color:var(--text-1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.ticket-status{ font-size:10px; padding:3px 9px; border-radius:20px; font-weight:700; flex-shrink:0; }
+.ticket-status.open{ background:rgba(51,209,122,.15); color:var(--green); }
+.ticket-status.closed{ background:rgba(92,98,112,.2); color:var(--text-1); }
+.ticket-row .unread-dot{ width:9px; height:9px; border-radius:50%; background:var(--red); flex-shrink:0; }
+.bubble-row{ display:flex; margin-bottom:10px; }
+.bubble-row.me{ justify-content:flex-start; }
+.bubble-row.them{ justify-content:flex-end; }
+.bubble{ max-width:75%; padding:10px 14px; border-radius:16px; font-size:13px; line-height:1.6; }
+.bubble-row.me .bubble{ background:var(--bg-2); border:1px solid var(--line); border-bottom-left-radius:4px; }
+.bubble-row.them .bubble{ background:linear-gradient(135deg, var(--violet), #6647d6); color:#fff; border-bottom-right-radius:4px; }
+.bubble .bname{ font-size:10.5px; opacity:.7; display:block; margin-bottom:3px; }
+.support-intro{ text-align:center; padding:26px 24px; color:var(--text-1); font-size:13px; }
+.support-intro i{ font-size:30px; color:var(--violet); margin-bottom:10px; display:block; }
+.ticket-closed-banner{ text-align:center; font-size:11.5px; color:var(--text-2); padding:8px; }
 
 .empty-state{ text-align:center; padding:50px 20px; color:var(--text-2); }
 .empty-state i{ font-size:34px; margin-bottom:12px; display:block; }
@@ -328,7 +382,7 @@ input{font-family:inherit;}
 <div id="lobby-screen" class="screen hidden">
   <div class="header">
     <div><h3 id="lobby-title">آرنا</h3><div class="sub" id="lobby-sub">سلام 👋</div></div>
-    <button class="btn-icon" id="admin-entry" onclick="showScreen('admin-screen'); renderAdmin();" style="display:none;"><i class="fa-solid fa-shield-halved"></i></button>
+    <button class="btn-icon icon-wrap" id="admin-entry" onclick="showScreen('admin-screen'); renderAdmin();" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span class="nav-dot" id="admin-entry-dot" style="top:-2px;left:-2px;"></span></button>
   </div>
   <div class="scroll">
     <div class="stat-row" id="lobby-stats"></div>
@@ -403,6 +457,7 @@ input{font-family:inherit;}
   <div class="bottom-nav">
     <div class="bottom-nav-item active" data-nav="games" onclick="switchLobbyTab('games')"><i class="fa-solid fa-gamepad"></i><span>بازی‌ها</span></div>
     <div class="bottom-nav-item" data-nav="profile" onclick="switchLobbyTab('profile')"><i class="fa-solid fa-user"></i><span>پروفایل</span></div>
+    <div class="bottom-nav-item" data-nav="support" onclick="switchLobbyTab('support')"><span class="icon-wrap"><i class="fa-solid fa-headset"></i><span class="nav-dot" id="support-nav-dot"></span></span><span>پشتیبانی</span></div>
     <div class="bottom-nav-item" data-nav="settings" onclick="switchLobbyTab('settings')"><i class="fa-solid fa-gear"></i><span>تنظیمات</span></div>
   </div>
 </div>
@@ -559,14 +614,52 @@ input{font-family:inherit;}
   </div>
 </div>
 
+<!-- ===================== SUPPORT (user side) ===================== -->
+<div id="support-screen" class="screen hidden">
+  <div class="header">
+    <button class="btn-back" onclick="leaveSupportScreen()"><i class="fa-solid fa-arrow-right"></i> بازگشت</button>
+    <div><h3>پشتیبانی آنلاین</h3><div class="sub">تیم آرنا اینجاست</div></div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="chat-msgs" id="support-msgs"></div>
+  <div id="support-closed-banner" class="ticket-closed-banner hidden">این تیکت بسته شده. برای گفتگوی جدید یه پیام بفرست</div>
+  <div class="chat-input-row">
+    <input type="text" id="support-input" placeholder="مشکلتو بنویس..." onkeydown="if(event.key==='Enter')sendSupportMessage()">
+    <button onclick="sendSupportMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+  </div>
+</div>
+
 <!-- ===================== ADMIN ===================== -->
 <div id="admin-screen" class="screen hidden">
   <div class="header">
     <button class="btn-back" onclick="showScreen('lobby-screen')"><i class="fa-solid fa-arrow-right"></i> بازگشت</button>
-    <h3>پنل مدیریت</h3>
-    <button class="btn-icon" onclick="cleanupRooms()"><i class="fa-solid fa-broom"></i></button>
+    <div><h3>پنل مدیریت</h3><div class="sub">کنترل کامل آرنا</div></div>
+    <button class="btn-icon" onclick="cleanupRooms()" title="پاکسازی اتاق‌های خالی"><i class="fa-solid fa-broom"></i></button>
   </div>
-  <div class="scroll" id="admin-user-list"></div>
+  <div class="scroll">
+    <div class="admin-stats-row" id="admin-stats"></div>
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" data-tab="users" onclick="switchAdminTab('users')"><i class="fa-solid fa-users"></i> کاربران</button>
+      <button class="admin-tab-btn icon-wrap" data-tab="tickets" onclick="switchAdminTab('tickets')"><i class="fa-solid fa-headset"></i> تیکت‌ها<span class="tab-dot" id="admin-tab-ticket-dot"></span></button>
+    </div>
+    <div class="admin-search" id="admin-users-search"><input id="admin-search-input" placeholder="جستجوی کاربر با نام یا آیدی..." oninput="renderAdmin()"></div>
+    <div id="admin-user-list"></div>
+    <div id="admin-ticket-list" class="hidden"></div>
+  </div>
+</div>
+
+<!-- ===================== ADMIN: TICKET THREAD ===================== -->
+<div id="admin-ticket-screen" class="screen hidden">
+  <div class="header">
+    <button class="btn-back" onclick="closeAdminTicketView()"><i class="fa-solid fa-arrow-right"></i> بازگشت</button>
+    <div><h3 id="admin-ticket-title">تیکت</h3><div class="sub" id="admin-ticket-sub"></div></div>
+    <button class="btn-icon" id="admin-ticket-close-btn" onclick="adminCloseTicket()" title="بستن تیکت"><i class="fa-solid fa-lock"></i></button>
+  </div>
+  <div class="chat-msgs" id="admin-ticket-msgs"></div>
+  <div class="chat-input-row">
+    <input type="text" id="admin-ticket-input" placeholder="پاسخ بده..." onkeydown="if(event.key==='Enter')sendAdminTicketReply()">
+    <button onclick="sendAdminTicketReply()"><i class="fa-solid fa-paper-plane"></i></button>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -708,6 +801,7 @@ const db = {
 
 const USERS_REF = 'app_users_v6';
 const ROOMS_REF = 'app_messages_v6';
+const TICKETS_REF = 'app_tickets_v6';
 const NIGHT_SECONDS = 30;
 const DISCUSSION_SECONDS = 60;
 const VOTE_SECONDS = 25;
@@ -718,6 +812,13 @@ let currentRoomId = null;
 let currentRoom = null;
 let roomListenerRef = null;
 let usersListenerRef = null;
+let supportListenerRef = null;
+let userTicketBadgeRef = null;
+let ticketsListenerRef = null;
+let tickets = {};
+let adminActiveTab = 'users';
+let adminOpenTicketId = null;
+let adminTicketListenerRef = null;
 let hostTickInterval = null;
 let uiTickInterval = null;
 let mafiaChoice = 'create';
@@ -823,9 +924,13 @@ function doLogin() {
         }
         if (!userData) { authMsg('کاربری با این نام پیدا نشد'); return; }
         if (userData.password !== pass) { authMsg('رمز عبور اشتباهه'); return; }
-        if (userData.suspendedUntil && userData.suspendedUntil > Date.now()) {
+        if (userData.suspendedUntil && userData.suspendedUntil > Date.now() && !userData.isAdmin) {
             const days = Math.ceil((userData.suspendedUntil - Date.now()) / 86400000);
             authMsg('حساب شما تا ' + days + ' روز دیگر تعلیق شده'); return;
+        }
+        if (userData.isAdmin && userData.suspendedUntil) {
+            delete userData.suspendedUntil;
+            db.ref(USERS_REF + '/' + id + '/suspendedUntil').remove().catch(err => console.error(err));
         }
         currentUser = userData;
         persistSession();
@@ -842,7 +947,7 @@ function restoreSession() {
     db.ref(USERS_REF + '/' + saved.userId).once('value').then(snap => {
         const userData = snap.val();
         if (!userData) { localStorage.removeItem('arena_session_v1'); return; }
-        if (userData.suspendedUntil && userData.suspendedUntil > Date.now()) { return; }
+        if (userData.suspendedUntil && userData.suspendedUntil > Date.now() && !userData.isAdmin) { return; }
         currentUser = userData;
         enterApp();
     }).catch(err => console.error('restoreSession error:', err));
@@ -852,6 +957,14 @@ function doLogout() {
     currentUser = null;
     localStorage.removeItem('arena_session_v1');
     if (usersListenerRef) { usersListenerRef.off(); usersListenerRef = null; }
+    if (supportListenerRef) { supportListenerRef.off(); supportListenerRef = null; }
+    if (userTicketBadgeRef) { userTicketBadgeRef.off(); userTicketBadgeRef = null; }
+    if (ticketsListenerRef) { ticketsListenerRef.off(); ticketsListenerRef = null; }
+    if (adminTicketListenerRef) { adminTicketListenerRef.off(); adminTicketListenerRef = null; }
+    tickets = {};
+    adminOpenTicketId = null;
+    document.getElementById('admin-entry').style.display = 'none';
+    document.getElementById('admin-entry-dot').style.display = 'none';
     leaveRoomCleanupOnly();
     showScreen('auth-screen');
     switchAuthTab('login');
@@ -862,6 +975,19 @@ function enterApp() {
     renderLobbyHeader();
     switchLobbyTab('games');
     watchUsers();
+    watchUserTicketBadge();
+}
+
+function watchUserTicketBadge() {
+    if (userTicketBadgeRef) userTicketBadgeRef.off();
+    userTicketBadgeRef = db.ref(TICKETS_REF + '/' + currentUser.userId);
+    userTicketBadgeRef.on('value', snap => {
+        const t = snap.val();
+        const last = t && (t.messages || [])[(t.messages || []).length - 1];
+        const supportOpen = !document.getElementById('support-screen').classList.contains('hidden');
+        const dot = document.getElementById('support-nav-dot');
+        if (dot) dot.style.display = (last && last.from === 'admin' && !supportOpen) ? 'block' : 'none';
+    });
 }
 
 // ======================================================================
@@ -874,7 +1000,7 @@ function watchUsers() {
         users = snap.val() || {};
         if (currentUser && users[currentUser.userId]) {
             const fresh = users[currentUser.userId];
-            if (fresh.suspendedUntil && fresh.suspendedUntil > Date.now()) {
+            if (fresh.suspendedUntil && fresh.suspendedUntil > Date.now() && !fresh.isAdmin) {
                 const days = Math.ceil((fresh.suspendedUntil - Date.now()) / 86400000);
                 toast('حساب شما تعلیق شد (' + days + ' روز)');
                 doLogout();
@@ -890,7 +1016,20 @@ function watchUsers() {
         }
         if (currentUser && currentUser.isAdmin) {
             document.getElementById('admin-entry').style.display = 'flex';
+            document.querySelector('.bottom-nav-item[data-nav="support"]').style.display = 'none';
+            watchTicketsForAdmin();
             if (!document.getElementById('admin-screen').classList.contains('hidden')) renderAdmin();
+        } else {
+            document.getElementById('admin-entry').style.display = 'none';
+            document.getElementById('admin-entry-dot').style.display = 'none';
+            const supportNav = document.querySelector('.bottom-nav-item[data-nav="support"]');
+            if (supportNav) supportNav.style.display = '';
+            if (ticketsListenerRef) { ticketsListenerRef.off(); ticketsListenerRef = null; }
+            tickets = {};
+            if (!document.getElementById('admin-screen').classList.contains('hidden') ||
+                !document.getElementById('admin-ticket-screen').classList.contains('hidden')) {
+                showScreen('lobby-screen');
+            }
         }
     });
 }
@@ -913,6 +1052,7 @@ function switchLobbyTab(tab) {
     if (tab === 'games') { showScreen('lobby-screen'); }
     else if (tab === 'profile') { showScreen('profile-screen'); renderProfile(); }
     else if (tab === 'settings') { showScreen('settings-screen'); renderSettings(); }
+    else if (tab === 'support') { showScreen('support-screen'); openSupportScreen(); }
 }
 
 // ======================================================================
@@ -1153,7 +1293,7 @@ function submitTTTMove(idx) {
     } else {
         updates.turn = otherId;
     }
-    db.ref(ROOMS_REF + '/' + currentRoomId).update(updates);
+    db.ref(ROOMS_REF + '/' + currentRoomId).update(updates).catch(err => toast(fbErrMsg(err)));
 }
 function renderTTTBoard(room, disabled) {
     const canPlay = !disabled && room.status === 'playing' && room.turn === currentUser.userId && !room.winner;
@@ -1222,7 +1362,7 @@ function submitC4Move(col) {
     } else {
         updates.turn = otherId;
     }
-    db.ref(ROOMS_REF + '/' + currentRoomId).update(updates);
+    db.ref(ROOMS_REF + '/' + currentRoomId).update(updates).catch(err => toast(fbErrMsg(err)));
 }
 function renderC4Board(room) {
     const myTurn = room.status==='playing' && room.turn === currentUser.userId && !room.winner;
@@ -1271,7 +1411,7 @@ function submitRPSPick(choice) {
     if (room.picks && room.picks[currentUser.userId]) return;
     db.ref(ROOMS_REF + '/' + currentRoomId + '/picks/' + currentUser.userId).set(choice).then(() => {
         maybeResolveRPS();
-    });
+    }).catch(err => toast(fbErrMsg(err)));
 }
 function maybeResolveRPS() {
     const room = currentRoom;
@@ -1338,7 +1478,7 @@ function startSpy() {
 function submitSpyVote(targetId) {
     const room = currentRoom;
     if (room.phase !== 'vote') return;
-    db.ref(ROOMS_REF + '/' + currentRoomId + '/votes/' + currentUser.userId).set(targetId);
+    db.ref(ROOMS_REF + '/' + currentRoomId + '/votes/' + currentUser.userId).set(targetId).catch(err => toast(fbErrMsg(err)));
 }
 function spyGuessWord(guess) {
     const room = currentRoom;
@@ -1347,10 +1487,10 @@ function spyGuessWord(guess) {
     const correct = guess.trim() === room.word;
     const log = (room.log||[]).concat([correct ? '🕵️ جاسوس کلمه رو درست حدس زد و برنده شد!' : '🕵️ جاسوس یه حدس اشتباه زد']);
     if (correct) {
-        db.ref(ROOMS_REF + '/' + currentRoomId).update({ status: 'ended', phase: 'ended', winner: 'spy', log });
+        db.ref(ROOMS_REF + '/' + currentRoomId).update({ status: 'ended', phase: 'ended', winner: 'spy', log }).catch(err => toast(fbErrMsg(err)));
         recordSpyStats(room, 'spy');
     } else {
-        db.ref(ROOMS_REF + '/' + currentRoomId).update({ log });
+        db.ref(ROOMS_REF + '/' + currentRoomId).update({ log }).catch(err => toast(fbErrMsg(err)));
         toast('حدس اشتباه بود!');
     }
 }
@@ -1408,6 +1548,7 @@ function renderSpyRoom(tickOnly) {
                 '<div class="action-target' + ((room.votes&&room.votes[currentUser.userId])===id?' picked':'') + '"><span>' + escapeHtml(p.name) + '</span><button onclick="submitSpyVote(\''+id+'\')">' + ((room.votes&&room.votes[currentUser.userId])===id?'انتخاب شد':'رای') + '</button></div>'
             ).join('') + '</div>';
     }
+    const chatState = captureChatInputState();
     body.innerHTML = phaseHtml +
         '<div class="section-title">بازیکنان</div><div class="player-grid">' + Object.entries(room.players).map(([id,p]) =>
             '<div class="player-chip"><div class="avatar-circ" style="background:' + colorFor(id) + '">' + initialOf(p.name) + '</div><div><div class="pname">' + escapeHtml(p.name) + (id===currentUser.userId?' (تو)':'') + '</div></div></div>'
@@ -1417,6 +1558,7 @@ function renderSpyRoom(tickOnly) {
             '<div class="chat-input-row"><input type="text" id="room-chat-input" placeholder="پیام بنویس..." onkeydown="if(event.key===\'Enter\')sendRoomChat()"><button onclick="sendRoomChat()"><i class="fa-solid fa-paper-plane"></i></button></div>'
             : '');
     const msgsBox = document.getElementById('room-chat-msgs'); if (msgsBox) msgsBox.scrollTop = msgsBox.scrollHeight;
+    restoreChatInputState(chatState);
 }
 
 // ---------------- TRIVIA QUIZ ----------------
@@ -1463,7 +1605,7 @@ function submitTriviaAnswer(optIdx) {
     const room = currentRoom;
     if (room.status !== 'playing') return;
     if (room.answers && room.answers[currentUser.userId] !== undefined) return;
-    db.ref(ROOMS_REF + '/' + currentRoomId + '/answers/' + currentUser.userId).set(optIdx);
+    db.ref(ROOMS_REF + '/' + currentRoomId + '/answers/' + currentUser.userId).set(optIdx).catch(err => toast(fbErrMsg(err)));
 }
 function maybeResolveTriviaEarly() {
     const room = currentRoom;
@@ -1639,8 +1781,7 @@ function enterRoom(code) {
     document.getElementById('room-header-title').textContent = 'اتاق ' + code;
     if (roomListenerRef) roomListenerRef.off();
     roomListenerRef = db.ref(ROOMS_REF + '/' + code);
-    roomListenerRef.on('value', snap => {
-        const room = snap.val();
+    const applyRoomSnapshot = (room) => {
         if (!room) {
             toast('اتاق بسته شد');
             exitRoomToLobby();
@@ -1651,9 +1792,23 @@ function enterRoom(code) {
         if (room.type === 'rps') maybeResolveRPS();
         if (room.type === 'trivia') maybeResolveTriviaEarly();
         maybeHostTick();
-    });
+    };
+    roomListenerRef.on('value', snap => applyRoomSnapshot(snap.val()));
     if (uiTickInterval) clearInterval(uiTickInterval);
-    uiTickInterval = setInterval(() => { if (currentRoom && currentRoom.status === 'playing') renderRoom(true); }, 1000);
+    let pollTicks = 0;
+    uiTickInterval = setInterval(() => {
+        if (currentRoom && currentRoom.status === 'playing') renderRoom(true);
+        // Safety net: if a realtime push ever gets missed (a move, a chat
+        // message, someone else's vote), don't leave the board stuck —
+        // re-fetch every few seconds and only re-render if something changed.
+        pollTicks++;
+        if (pollTicks % 3 === 0 && currentRoomId) {
+            db.ref(ROOMS_REF + '/' + currentRoomId).once('value').then(snap => {
+                const room = snap.val();
+                if (JSON.stringify(room) !== JSON.stringify(currentRoom)) applyRoomSnapshot(room);
+            }).catch(() => {});
+        }
+    }, 1000);
 }
 
 function exitRoomToLobby() {
@@ -1842,24 +1997,46 @@ function finishGame(players, winner, log) {
 // MAFIA - ACTIONS FROM PLAYERS
 // ======================================================================
 function submitMafiaVote(targetId) {
-    db.ref(ROOMS_REF + '/' + currentRoomId + '/night/mafiaVotes/' + currentUser.userId).set(targetId);
+    db.ref(ROOMS_REF + '/' + currentRoomId + '/night/mafiaVotes/' + currentUser.userId).set(targetId).catch(err => toast(fbErrMsg(err)));
 }
 function submitDoctorSave(targetId) {
-    db.ref(ROOMS_REF + '/' + currentRoomId + '/night/doctorSave').set(targetId);
+    db.ref(ROOMS_REF + '/' + currentRoomId + '/night/doctorSave').set(targetId).catch(err => toast(fbErrMsg(err)));
 }
 function submitDetectiveCheck(targetId) {
-    db.ref(ROOMS_REF + '/' + currentRoomId + '/night/detectiveCheck').set(targetId);
+    db.ref(ROOMS_REF + '/' + currentRoomId + '/night/detectiveCheck').set(targetId).catch(err => toast(fbErrMsg(err)));
 }
 function submitDayVote(targetId) {
-    db.ref(ROOMS_REF + '/' + currentRoomId + '/votes/' + currentUser.userId).set(targetId);
+    db.ref(ROOMS_REF + '/' + currentRoomId + '/votes/' + currentUser.userId).set(targetId).catch(err => toast(fbErrMsg(err)));
 }
 function sendRoomChat() {
     const input = document.getElementById('room-chat-input');
     const text = input.value.trim();
     if (!text) return;
-    const chat = (currentRoom.chat || []).concat([{ id: currentUser.userId, name: currentUser.name, text, t: Date.now() }]);
-    db.ref(ROOMS_REF + '/' + currentRoomId + '/chat').set(chat.slice(-200));
     input.value = '';
+    const chat = (currentRoom.chat || []).concat([{ id: currentUser.userId, name: currentUser.name, text, t: Date.now() }]);
+    db.ref(ROOMS_REF + '/' + currentRoomId + '/chat').set(chat.slice(-200))
+        .catch(err => { toast(fbErrMsg(err)); input.value = text; });
+}
+
+// Chat input gets torn down and rebuilt by innerHTML on every realtime tick
+// (any room field changing, not just chat). Without this, whatever the user
+// is mid-typing gets wiped and focus is lost the instant another message
+// arrives. Call this right before overwriting body.innerHTML in a room
+// renderer that has a chat box, then call restoreChatInputState() after.
+function captureChatInputState() {
+    const input = document.getElementById('room-chat-input');
+    if (!input) return null;
+    return { value: input.value, focused: document.activeElement === input, selStart: input.selectionStart, selEnd: input.selectionEnd };
+}
+function restoreChatInputState(state) {
+    if (!state) return;
+    const input = document.getElementById('room-chat-input');
+    if (!input) return;
+    input.value = state.value;
+    if (state.focused) {
+        input.focus();
+        try { input.setSelectionRange(state.selStart, state.selEnd); } catch (e) {}
+    }
 }
 
 // ======================================================================
@@ -1978,6 +2155,7 @@ function renderMafiaRoom(tickOnly) {
     const players = Object.entries(room.players || {});
     const myRoleLine = myRole ? '<div class="role-hint" style="border:1px solid var(--violet);">نقش تو: <b>' + roleLabel(myRole) + '</b></div>' : '';
 
+    const chatState = captureChatInputState();
     body.innerHTML =
         phaseHtml + myRoleLine +
         '<div class="section-title">بازیکنان</div>' +
@@ -1995,6 +2173,7 @@ function renderMafiaRoom(tickOnly) {
 
     const msgsBox = document.getElementById('room-chat-msgs');
     if (msgsBox) msgsBox.scrollTop = msgsBox.scrollHeight;
+    restoreChatInputState(chatState);
 }
 
 function roleLabel(role) {
@@ -2002,34 +2181,219 @@ function roleLabel(role) {
 }
 
 // ======================================================================
+// SUPPORT (user side ticket chat)
+// ======================================================================
+function openSupportScreen() {
+    const dot = document.getElementById('support-nav-dot');
+    if (dot) dot.style.display = 'none';
+    if (supportListenerRef) supportListenerRef.off();
+    supportListenerRef = db.ref(TICKETS_REF + '/' + currentUser.userId);
+    supportListenerRef.on('value', snap => {
+        renderSupport(snap.val());
+        if (dot) dot.style.display = 'none';
+    });
+}
+function leaveSupportScreen() {
+    if (supportListenerRef) { supportListenerRef.off(); supportListenerRef = null; }
+    showScreen('lobby-screen');
+}
+function renderSupport(ticket) {
+    const box = document.getElementById('support-msgs');
+    const banner = document.getElementById('support-closed-banner');
+    if (!ticket || !(ticket.messages || []).length) {
+        box.innerHTML = '<div class="support-intro"><i class="fa-solid fa-headset"></i>مشکلی داری؟ پیامتو بنویس تا تیم آرنا باهات صحبت کنه</div>';
+        banner.classList.add('hidden');
+        return;
+    }
+    box.innerHTML = ticket.messages.map(m =>
+        '<div class="bubble-row ' + (m.from === 'admin' ? 'them' : 'me') + '"><div class="bubble">' +
+        (m.from === 'admin' ? '<span class="bname">' + escapeHtml(m.name) + '</span>' : '') + escapeHtml(m.text) + '</div></div>'
+    ).join('');
+    box.scrollTop = box.scrollHeight;
+    banner.classList.toggle('hidden', ticket.status !== 'closed');
+}
+function sendSupportMessage() {
+    const input = document.getElementById('support-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    db.ref(TICKETS_REF + '/' + currentUser.userId).once('value').then(snap => {
+        const t = snap.val() || { userId: currentUser.userId, userName: currentUser.name, createdAt: Date.now(), messages: [] };
+        const messages = (t.messages || []).slice(-200);
+        messages.push({ from: 'user', name: currentUser.name, text, time: Date.now() });
+        const newTicket = {
+            userId: currentUser.userId, userName: currentUser.name,
+            status: 'open', createdAt: t.createdAt || Date.now(), updatedAt: Date.now(), messages
+        };
+        return db.ref(TICKETS_REF + '/' + currentUser.userId).set(newTicket).then(() => {
+            // Don't wait on the realtime round-trip to show the user's own message —
+            // if Realtime isn't wired up for this table, it would otherwise look like
+            // the message never sent even though it was saved fine.
+            renderSupport(newTicket);
+        });
+    }).catch(err => {
+        toast(fbErrMsg(err));
+        input.value = text; // give the message back so it isn't lost
+    });
+}
+
+// ======================================================================
 // ADMIN
 // ======================================================================
+function renderAdminStats() {
+    const list = Object.values(users || {});
+    const now = Date.now();
+    const openTickets = Object.values(tickets || {}).filter(t => t.status === 'open').length;
+    // "needs a reply" is different from "not closed yet" — a ticket you already
+    // answered and are waiting on the user for shouldn't keep lighting up the
+    // notification dot as if it were new.
+    const needsReply = Object.values(tickets || {}).filter(t => {
+        if (t.status !== 'open') return false;
+        const last = (t.messages || [])[(t.messages || []).length - 1];
+        return last && last.from === 'user';
+    }).length;
+    const stats = [
+        { num: list.length, lbl: 'کل کاربران', cls: '' },
+        { num: list.filter(u => u.isAdmin).length, lbl: 'مدیر', cls: '' },
+        { num: list.filter(u => u.suspendedUntil && u.suspendedUntil > now).length, lbl: 'تعلیق‌شده', cls: 'warn' },
+        { num: openTickets, lbl: 'تیکت باز', cls: openTickets ? 'red' : '' }
+    ];
+    document.getElementById('admin-stats').innerHTML = stats.map(s =>
+        '<div class="admin-stat-card ' + s.cls + '"><div class="num">' + toFa(s.num) + '</div><div class="lbl">' + s.lbl + '</div></div>'
+    ).join('');
+    const dot = document.getElementById('admin-tab-ticket-dot');
+    const navDot = document.getElementById('admin-entry-dot');
+    if (dot) dot.style.display = needsReply ? 'block' : 'none';
+    if (navDot) navDot.style.display = needsReply ? 'block' : 'none';
+}
+
+function switchAdminTab(tab) {
+    adminActiveTab = tab;
+    document.querySelectorAll('.admin-tab-btn').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+    document.getElementById('admin-users-search').classList.toggle('hidden', tab !== 'users');
+    document.getElementById('admin-user-list').classList.toggle('hidden', tab !== 'users');
+    document.getElementById('admin-ticket-list').classList.toggle('hidden', tab !== 'tickets');
+    renderAdmin();
+}
+
 function renderAdmin() {
-    const list = Object.values(users || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    renderAdminStats();
+    if (adminActiveTab === 'tickets') { renderAdminTicketList(); return; }
+    const q = (document.getElementById('admin-search-input') && document.getElementById('admin-search-input').value || '').trim().toLowerCase();
+    let list = Object.values(users || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    if (q) list = list.filter(u => (u.name || '').toLowerCase().includes(q) || (u.userId || '').toLowerCase().includes(q));
     const box = document.getElementById('admin-user-list');
-    if (!list.length) { box.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users"></i>کاربری وجود ندارد</div>'; return; }
+    if (!list.length) { box.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users"></i>کاربری پیدا نشد</div>'; return; }
     box.innerHTML = list.map(u => {
         const suspended = u.suspendedUntil && u.suspendedUntil > Date.now();
         return '<div class="admin-user-row"><div class="info"><b>' + escapeHtml(u.name) + '</b> @' + escapeHtml(u.userId) +
-            (u.isAdmin ? ' <span style="color:var(--violet);">مدیر</span>' : '') +
+            (u.isAdmin ? ' <span class="tag-admin">مدیر</span>' : '') +
             (u.isVerified ? ' <i class="fa-solid fa-badge-check" style="color:var(--violet);"></i>' : '') +
             '<br><span>' + toFa(u.wins || 0) + ' برد · ' + toFa(u.losses || 0) + ' باخت</span>' +
             (suspended ? '<br><span class="tag-sus">تعلیق شده</span>' : '') + '</div>' +
             '<div class="admin-actions">' +
             '<button class="ok" title="تایید" onclick="adminToggleVerify(\'' + u.userId + '\')"><i class="fa-solid fa-badge-check"></i></button>' +
-            (suspended
-                ? '<button class="warn" title="رفع تعلیق" onclick="adminUnsuspend(\'' + u.userId + '\')"><i class="fa-solid fa-lock-open"></i></button>'
-                : '<button class="warn" title="تعلیق ۷ روزه" onclick="adminSuspend(\'' + u.userId + '\')"><i class="fa-solid fa-ban"></i></button>') +
-            '<button class="danger" title="حذف" onclick="adminDeleteUser(\'' + u.userId + '\')"><i class="fa-solid fa-trash"></i></button>' +
+            (u.isAdmin
+                ? '<button class="warn" title="مدیرها قابل تعلیق نیستن" disabled><i class="fa-solid fa-ban"></i></button>'
+                : (suspended
+                    ? '<button class="warn" title="رفع تعلیق" onclick="adminUnsuspend(\'' + u.userId + '\')"><i class="fa-solid fa-lock-open"></i></button>'
+                    : '<button class="warn" title="تعلیق ۷ روزه" onclick="adminSuspend(\'' + u.userId + '\')"><i class="fa-solid fa-ban"></i></button>')) +
+            (u.isAdmin
+                ? '<button class="danger" title="مدیرها قابل حذف نیستن" disabled><i class="fa-solid fa-trash"></i></button>'
+                : '<button class="danger" title="حذف" onclick="adminDeleteUser(\'' + u.userId + '\')"><i class="fa-solid fa-trash"></i></button>') +
             '</div></div>';
     }).join('');
+}
+
+// ----- Tickets: admin side list -----
+function watchTicketsForAdmin() {
+    if (ticketsListenerRef) return;
+    ticketsListenerRef = db.ref(TICKETS_REF);
+    ticketsListenerRef.on('value', snap => {
+        tickets = snap.val() || {};
+        renderAdminStats();
+        if (!document.getElementById('admin-screen').classList.contains('hidden') && adminActiveTab === 'tickets') renderAdminTicketList();
+        if (adminOpenTicketId && !document.getElementById('admin-ticket-screen').classList.contains('hidden')) renderAdminTicketThread();
+    });
+}
+
+function renderAdminTicketList() {
+    const box = document.getElementById('admin-ticket-list');
+    const list = Object.entries(tickets || {}).sort((a, b) => (b[1].updatedAt || 0) - (a[1].updatedAt || 0));
+    if (!list.length) { box.innerHTML = '<div class="empty-state"><i class="fa-solid fa-headset"></i>هنوز تیکتی ثبت نشده</div>'; return; }
+    box.innerHTML = list.map(([uid, t]) => {
+        const last = (t.messages || [])[(t.messages || []).length - 1];
+        const unread = t.status === 'open' && last && last.from === 'user';
+        return '<div class="ticket-row" onclick="openAdminTicketView(\'' + uid + '\')">' +
+            '<div class="avatar-circ" style="background:' + colorFor(uid) + '">' + initialOf(t.userName) + '</div>' +
+            '<div class="info"><b>' + escapeHtml(t.userName || uid) + '</b><p>' + (last ? escapeHtml(last.text) : '') + '</p></div>' +
+            (unread ? '<span class="unread-dot"></span>' : '') +
+            '<span class="ticket-status ' + (t.status === 'open' ? 'open' : 'closed') + '">' + (t.status === 'open' ? 'باز' : 'بسته') + '</span>' +
+            '</div>';
+    }).join('');
+}
+
+function openAdminTicketView(uid) {
+    adminOpenTicketId = uid;
+    showScreen('admin-ticket-screen');
+    renderAdminTicketThread();
+}
+function closeAdminTicketView() {
+    adminOpenTicketId = null;
+    showScreen('admin-screen');
+    renderAdmin();
+}
+function renderAdminTicketThread() {
+    const t = tickets[adminOpenTicketId];
+    if (!t) { closeAdminTicketView(); return; }
+    document.getElementById('admin-ticket-title').textContent = t.userName || adminOpenTicketId;
+    document.getElementById('admin-ticket-sub').textContent = t.status === 'open' ? 'باز' : 'بسته';
+    const closeBtn = document.getElementById('admin-ticket-close-btn');
+    closeBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    closeBtn.title = 'بستن و حذف تیکت';
+    const box = document.getElementById('admin-ticket-msgs');
+    box.innerHTML = (t.messages || []).map(m =>
+        '<div class="bubble-row ' + (m.from === 'admin' ? 'them' : 'me') + '"><div class="bubble"><span class="bname">' + escapeHtml(m.name) + '</span>' + escapeHtml(m.text) + '</div></div>'
+    ).join('');
+    box.scrollTop = box.scrollHeight;
+}
+function sendAdminTicketReply() {
+    const input = document.getElementById('admin-ticket-input');
+    const text = input.value.trim();
+    if (!text || !adminOpenTicketId) return;
+    input.value = '';
+    const t = tickets[adminOpenTicketId] || { messages: [] };
+    const messages = (t.messages || []).slice(-200);
+    messages.push({ from: 'admin', name: currentUser.name, text, time: Date.now() });
+    db.ref(TICKETS_REF + '/' + adminOpenTicketId).update({ messages, status: 'open', updatedAt: Date.now() }).then(() => {
+        tickets[adminOpenTicketId] = Object.assign({}, t, { messages, status: 'open', updatedAt: Date.now() });
+        renderAdminTicketThread();
+    }).catch(err => {
+        toast(fbErrMsg(err));
+        input.value = text;
+    });
+}
+function adminCloseTicket() {
+    const t = tickets[adminOpenTicketId];
+    if (!t) return;
+    if (!confirm('تیکت بسته و کامل از دیتابیس حذف بشه؟')) return;
+    // Closed tickets have no further use and just take up space — remove the
+    // row entirely instead of leaving it around forever with status:'closed'.
+    db.ref(TICKETS_REF + '/' + adminOpenTicketId).remove().then(() => {
+        delete tickets[adminOpenTicketId];
+        closeAdminTicketView();
+    }).catch(err => toast(fbErrMsg(err)));
 }
 function adminDeleteUser(uid) {
     if (uid === currentUser.userId) { toast('نمی‌تونی خودت رو حذف کنی'); return; }
     if (!confirm('حذف این کاربر مطمئنی؟')) return;
     db.ref(USERS_REF + '/' + uid).remove();
+    // Don't leave an orphaned support ticket behind for a user that no longer exists.
+    db.ref(TICKETS_REF + '/' + uid).remove().catch(() => {});
 }
 function adminSuspend(uid) {
+    const u = users[uid];
+    if (u && u.isAdmin) { toast('نمی‌شه یه مدیر رو تعلیق کرد'); return; }
     db.ref(USERS_REF + '/' + uid).update({ suspendedUntil: Date.now() + 7 * 86400000 });
 }
 function adminUnsuspend(uid) {
